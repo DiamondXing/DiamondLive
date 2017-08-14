@@ -18,7 +18,7 @@
         android:background="@color/color_f5f5f5"
         android:gravity="center" >
 
-        <com.yuyoubang.widget.loading.LoadingView
+        <com.zxx.diamondlive.widget.loading.LoadingView
             android:id="@+id/loading"
             android:layout_width="30dp"
             android:layout_height="30dp"

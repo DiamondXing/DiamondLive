@@ -75,7 +75,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <com.yuyoubang.view.PublicLoadLayout
+    <com.zxx.diamondlive.view.PublicLoadLayout
         android:id="@+id/public_load_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
