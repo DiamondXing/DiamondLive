@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentTransaction;
 
 import com.zxx.diamondlive.R;
 
-
 /**
  * date: Created xiaoyuan on 16/11/05.
  */

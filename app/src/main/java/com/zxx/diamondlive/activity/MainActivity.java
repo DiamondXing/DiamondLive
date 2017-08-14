@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TabHost;
 import android.widget.Toast;
-
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.activity.base.BaseActivity;
 import com.zxx.diamondlive.fragment.MyFragmentTabHost;
