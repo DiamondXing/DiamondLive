@@ -13,8 +13,8 @@
 
     <style name="ZhikeAppTheme" parent="AppTheme.NoActionBar">
         <!--ActionBar背景  -->
-        <item name="colorPrimary">@color/color_ff9600</item>
-        <item name="colorPrimaryDark">@color/color_ff9000</item>
+        <item name="colorPrimary">@color/color_tab_text</item>
+        <item name="colorPrimaryDark">@color/color_tab_text</item>
         <item name="colorAccent">@color/colorAccent</item>
         <!--页面背景-->
         <item name="android:windowBackground">@color/color_ffffff</item>
@@ -44,6 +44,13 @@
         <item name="android:gravity">center_horizontal|bottom</item>
         <item name="android:layout_gravity">bottom</item>
         <!-- <item name="android:background" >@drawable/tab_selector_checked_bg</item> -->
+    </style>
+
+    <style name="tab_bt_style">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center_vertical</item>
     </style>
 
 

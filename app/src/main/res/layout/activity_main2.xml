@@ -1,0 +1,44 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:clipChildren="false">
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vp_main"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+    </android.support.v4.view.ViewPager>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/color_5895ed"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/bt_main_live"
+            style="@style/tab_bt_style"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/tab_live"/>
+
+        <ImageView
+            android:id="@+id/bt_main_room"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/tab_room"/>
+
+        <ImageView
+            android:id="@+id/bt_main_me"
+            style="@style/tab_bt_style"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/tab_me" />
+    </LinearLayout>
+
+</LinearLayout>
