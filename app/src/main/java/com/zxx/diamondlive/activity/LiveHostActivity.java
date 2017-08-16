@@ -1,91 +1,111 @@
-package com.zxx.diamondlive.test;
+package com.zxx.diamondlive.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.zxx.diamondlive.R;
+import com.zxx.diamondlive.activity.base.BaseActivity;
 import com.zxx.diamondlive.fragment.LiveFragment;
 import com.zxx.diamondlive.fragment.MeFragment;
-import com.zxx.diamondlive.fragment.RoomFragment;
 
 import java.util.ArrayList;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity {
+public class LiveHostActivity extends BaseActivity {
+
 
     @BindView(R.id.vp_main)
     ViewPager vpMain;
-    @BindView(R.id.bt_main_live)
-    ImageView btMainLive;
-    @BindView(R.id.bt_main_room)
-    ImageView btMainRoom;
-    @BindView(R.id.bt_main_me)
-    ImageView btMainMe;
+    @BindView(R.id.rb_live_main)
+    RadioButton rbLiveMain;
+    @BindView(R.id.rb_room_main)
+    RadioButton rbRoomMain;
+    @BindView(R.id.rb_me_main)
+    RadioButton rbMeMain;
+    @BindView(R.id.rg_main)
+    RadioGroup rgMain;
+
     private ArrayList<Fragment> listFragment;
     private LiveFragment liveFragment;
-    private RoomFragment roomFragment;
     private MeFragment meFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
-        ButterKnife.bind(this);
         initVariable();
         initData();
     }
 
+    @Override
+    protected void initTitleBar(HeaderBuilder builder) {
+        builder.goneToolbar();
+    }
+
+    @Override
+    protected int getContentResId() {
+        return R.layout.live_host;
+    }
+
     private void initData() {
         vpMain.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
+        vpMain.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == 0){
+                    rbLiveMain.setChecked(true);
+                }else if (position == 1){
+                    rbMeMain.setChecked(true);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
     private void initVariable() {
         liveFragment = new LiveFragment();
-        roomFragment = new RoomFragment();
         meFragment = new MeFragment();
         listFragment = new ArrayList<>();
         listFragment.add(liveFragment);
-        listFragment.add(roomFragment);
         listFragment.add(meFragment);
 
 
         vpMain.setCurrentItem(0);
-        btMainLive.setImageResource(R.mipmap.tab_live_p);
+        rbLiveMain.setChecked(true);
     }
-    @OnClick({R.id.bt_main_live,R.id.bt_main_room,R.id.bt_main_me})
-    public void showView(View view){
-        resetTab();
+
+    @OnClick({R.id.rb_live_main, R.id.rb_room_main, R.id.rb_me_main})
+    public void showView(View view) {
         switch (view.getId()) {
-            case R.id.bt_main_live:
+            case R.id.rb_live_main:
                 vpMain.setCurrentItem(0);
-                btMainLive.setImageResource(R.mipmap.tab_live_p);
                 break;
-            case R.id.bt_main_room:
+            case R.id.rb_room_main:
+                break;
+            case R.id.rb_me_main:
                 vpMain.setCurrentItem(1);
-                btMainRoom.setImageResource(R.mipmap.tab_room_p);
-                break;
-            case R.id.bt_main_me:
-                vpMain.setCurrentItem(2);
-                btMainMe.setImageResource(R.mipmap.tab_me_p);
                 break;
         }
     }
-    private void resetTab(){
-        btMainLive.setImageResource(R.mipmap.tab_live);
-        btMainRoom.setImageResource(R.mipmap.tab_room);
-        btMainMe.setImageResource(R.mipmap.tab_me);
-    }
 
-    class MyPagerAdapter extends FragmentPagerAdapter{
+
+    class MyPagerAdapter extends FragmentPagerAdapter {
 
         public MyPagerAdapter(FragmentManager fm) {
             super(fm);

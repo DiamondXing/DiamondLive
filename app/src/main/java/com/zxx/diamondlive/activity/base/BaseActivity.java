@@ -7,6 +7,8 @@ import android.support.v4.app.FragmentTransaction;
 
 import com.zxx.diamondlive.R;
 
+import butterknife.ButterKnife;
+
 /**
  * date: Created xiaoyuan on 16/11/05.
  */
@@ -16,6 +18,7 @@ public abstract class BaseActivity extends ToolBarActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRootContent();
+        ButterKnife.bind(this);
     }
 
     private void setRootContent(){

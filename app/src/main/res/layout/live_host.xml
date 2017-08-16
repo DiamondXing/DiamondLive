@@ -1,0 +1,49 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:clipChildren="false">
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vp_main"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+    </android.support.v4.view.ViewPager>
+
+    <RadioGroup
+        android:id="@+id/rg_main"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/color_5895ed"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/rb_live_main"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableTop="@drawable/tab_live_selector"/>
+
+
+        <RadioButton
+            android:id="@+id/rb_room_main"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/tab_room_selector"
+            android:button="@null"
+            android:layout_gravity="bottom"/>
+
+        <RadioButton
+            android:id="@+id/rb_me_main"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableTop="@drawable/tab_me_selector"/>
+    </RadioGroup>
+
+</LinearLayout>

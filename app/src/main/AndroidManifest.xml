@@ -15,12 +15,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/ZhikeAppTheme">
-        <activity android:name=".activity.MainActivity"></activity>
+        <activity android:name=".activity.MainActivity" />
         <activity
             android:name=".activity.TestActivity"
             android:screenOrientation="portrait" />
         <activity android:name=".test.Test1Activity" />
-        <activity android:name=".test.MainActivity">
+        <activity android:name=".activity.LiveHostActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

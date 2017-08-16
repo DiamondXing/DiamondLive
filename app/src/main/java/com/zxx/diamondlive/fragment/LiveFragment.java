@@ -11,43 +11,49 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.zxx.diamondlive.R;
+import com.zxx.diamondlive.fragment.base.BaseFragment;
 
 import java.util.ArrayList;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * Created by Administrator on 2017/8/15 0015.
  */
 
-public class LiveFragment extends Fragment {
+public class LiveFragment extends BaseFragment {
 
-    private View view;
-    private TabLayout tabLayout;
-    private ViewPager pager;
+    @BindView(R.id.tab_live)
+    TabLayout tabLive;
+    @BindView(R.id.vp_live)
+    ViewPager vpLive;
+    Unbinder unbinder;
     private ArrayList<Fragment> listFragment;
 
-    @Nullable
+
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = LayoutInflater.from(getActivity()).inflate(R.layout.frg_live, null);
-        return view;
+    protected int getContentResId() {
+        return R.layout.frg_live;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        tabLayout = view.findViewById(R.id.tab_live);
-        pager = view.findViewById(R.id.vp_live);
-        final String[] title = new String[]{"精选","热门"};
+        
+        final String[] title = new String[]{"精选", "热门"};
         Live_Selection_Fragment live_selection_fragment = new Live_Selection_Fragment();
         Live_Hot_Fragment live_hot_fragment = new Live_Hot_Fragment();
         listFragment = new ArrayList<>();
         listFragment.add(live_selection_fragment);
         listFragment.add(live_hot_fragment);
-        pager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+        vpLive.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
                 return listFragment.get(position);
             }
+
             @Override
             public int getCount() {
                 return listFragment.size();
@@ -58,6 +64,20 @@ public class LiveFragment extends Fragment {
                 return title[position];
             }
         });
-        tabLayout.setupWithViewPager(pager);
+        tabLive.setupWithViewPager(vpLive);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 }
