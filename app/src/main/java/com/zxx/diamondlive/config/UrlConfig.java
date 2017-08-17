@@ -15,10 +15,10 @@ public class UrlConfig {
     static {
         switch (Online) {
             case Test:
-                TestHostUrl = "http://59.110.21.9:28001/";
+                TestHostUrl = "http://121.42.26.175:14444/";
                 break;
             case Online:
-                TestHostUrl = "http://59.110.21.9:28001/";
+                TestHostUrl = "http://121.42.26.175:14444/";
                 break;
         }
     }

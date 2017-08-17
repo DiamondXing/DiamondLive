@@ -10,17 +10,22 @@ import android.view.ViewGroup;
 import com.zxx.diamondlive.listener.OnRefreshListener;
 import com.zxx.diamondlive.view.PublicLoadLayout;
 
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
 
 /**
  * date: Created on 16/5/24.
  */
 public abstract class BaseLoadFragment extends UmengFragment implements OnRefreshListener {
     private PublicLoadLayout mRootLayout;
-
+    Unbinder unbinder;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mRootLayout = PublicLoadLayout.createPage(getContext(), getContentResId(), this);
+        unbinder = ButterKnife.bind(this, mRootLayout);
+
         return mRootLayout;
     }
 
@@ -49,4 +54,10 @@ public abstract class BaseLoadFragment extends UmengFragment implements OnRefres
     }
 
     protected abstract int getContentResId();
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
 }

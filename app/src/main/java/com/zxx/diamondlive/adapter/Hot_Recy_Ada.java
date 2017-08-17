@@ -6,7 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.zxx.diamondlive.R;
+import com.zxx.diamondlive.bean.Live;
+
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/8/16 0016.
@@ -14,11 +18,16 @@ import com.zxx.diamondlive.R;
 
 public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     Context mContext;
+    List<Live.ResultBean.ListBean> mList;
 
-    public Hot_Recy_Ada(Context context) {
+    public Hot_Recy_Ada(Context context,List<Live.ResultBean.ListBean> list) {
         mContext = context;
+        mList = list;
     }
-
+    public void refresh(List<Live.ResultBean.ListBean> list){
+        mList = list;
+        notifyDataSetChanged();
+    }
     @Override
     public MySelectionAda onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.live_item, parent,false);
@@ -28,15 +37,20 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
 
     @Override
     public void onBindViewHolder(MySelectionAda holder, int position) {
-//        holder.ivPhotoLiveItem.setImageResource();
-//        holder.tvNameLiveItem.setText();
-//        holder.tvDescLiveItem.setText();
-//        holder.ivPicLiveItem.setImageResource();
+        if (position < mList.size()) {
+            Glide.with(mContext).load(mList.get(position)
+                    .getUser().getUser_data().getAvatar()).into(holder.ivPhotoLiveItem);
+            Glide.with(mContext).load(mList.get(position)
+                    .getData().getPic()).into(holder.ivPicLiveItem);
+            holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
+            holder.tvDescLiveItem.setText(mList.get(position).getUser()
+                    .getUser_data().getUser_name());
+        }
     }
 
     @Override
     public int getItemCount() {
-        return 30;
+        return mList.size();
     }
 }
 

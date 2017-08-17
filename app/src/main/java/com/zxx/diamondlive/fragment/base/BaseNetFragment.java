@@ -37,7 +37,7 @@ public abstract class BaseNetFragment<T> extends BaseLoadFragment implements Cal
     }
 
     private void load(){
-        showLoading();
+//        showLoading();
         loadData();
     }
 
