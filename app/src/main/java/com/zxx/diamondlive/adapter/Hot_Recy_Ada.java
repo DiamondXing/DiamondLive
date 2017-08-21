@@ -17,7 +17,7 @@ import java.util.List;
  * Created by Administrator on 2017/8/16 0016.
  */
 
-public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
+public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda>implements View.OnClickListener {
     Context mContext;
     List<Live.ResultBean.ListBean> mList;
     OnItemClickListener listener;
@@ -37,6 +37,7 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     public MySelectionAda onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.live_item, parent,false);
         MySelectionAda mySelectionAda = new MySelectionAda(view);
+        view.setOnClickListener(this);
         return mySelectionAda;
     }
 
@@ -44,13 +45,11 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     public void onBindViewHolder(MySelectionAda holder, final int position) {
         Glide.with(mContext).load(mList.get(position)
                 .getUser().getUser_data().getAvatar())
-                .error(R.mipmap.ic_launcher_round)
-                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.mipmap.ic_launcher)
                 .into(holder.ivPhotoLiveItem);
         Glide.with(mContext).load(mList.get(position)
                 .getData().getPic())
-                .error(R.mipmap.ic_launcher_round)
-                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.mipmap.ic_launcher)
                 .into(holder.ivPicLiveItem);
         holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
         holder.tvDescLiveItem.setText(mList.get(position).getUser()
@@ -60,17 +59,19 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
         }else{
             holder.tvStatusLiveItem.setText("录播");
         }
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listener.onItemClick(view,position);
-            }
-        });
+        holder.itemView.setTag(position);
     }
 
     @Override
     public int getItemCount() {
         return mList.size();
+    }
+
+    @Override
+    public void onClick(View view) {
+        if(listener!= null) {
+            listener.onItemClick(view, (int) view.getTag());
+        }
     }
 }
 

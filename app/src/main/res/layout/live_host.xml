@@ -17,7 +17,7 @@
         android:id="@+id/rg_main"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/color_5895ed"
+        android:background="@color/color_ffffff"
         android:orientation="horizontal">
 
         <RadioButton

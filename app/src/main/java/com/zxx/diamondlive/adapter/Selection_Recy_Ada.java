@@ -50,14 +50,12 @@ public class Selection_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     public void onBindViewHolder(MySelectionAda holder, final int position) {
         Glide.with(mContext).load(mList.get(position)
                 .getUser().getUser_data().getAvatar())
-                .error(R.mipmap.ic_launcher_round)
-                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.mipmap.ic_launcher)
                 .into(holder.ivPhotoLiveItem);
 
         Glide.with(mContext).load(mList.get(position)
                 .getData().getPic())
-                .error(R.mipmap.ic_launcher_round)
-                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.mipmap.ic_launcher)
                 .into(holder.ivPicLiveItem);
 
         holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
