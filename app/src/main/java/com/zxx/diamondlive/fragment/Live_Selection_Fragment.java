@@ -1,15 +1,19 @@
 package com.zxx.diamondlive.fragment;
 
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Toast;
 
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
 import com.zxx.diamondlive.R;
+import com.zxx.diamondlive.activity.PlayActivity;
 import com.zxx.diamondlive.adapter.Selection_Recy_Ada;
 import com.zxx.diamondlive.bean.Live;
 import com.zxx.diamondlive.fragment.base.BaseNetFragment;
+import com.zxx.diamondlive.listener.OnItemClickListener;
 import com.zxx.diamondlive.network.RetrofitManager;
 import com.zxx.diamondlive.network.api.LiveApi;
 
@@ -36,6 +40,10 @@ public class Live_Selection_Fragment extends BaseNetFragment<Live> {
     private Selection_Recy_Ada adapter;
     private int type = 0;
     private int page = 1;
+    private final int REFRESH = 0;
+    private final int LOAD = 1;
+    private int STATE = REFRESH; //默认为下拉刷新
+
     private List<Live.ResultBean.ListBean> list;
     private List<Live.ResultBean.ListBean> newList = new ArrayList<>();
 
@@ -52,9 +60,6 @@ public class Live_Selection_Fragment extends BaseNetFragment<Live> {
 
     @Override
     protected void loadData() {
-        getData();
-    }
-    private List<Live.ResultBean.ListBean> getData(){
         LiveApi liveApi = RetrofitManager.getTestRetrofit().create(LiveApi.class);
         FormBody formBody = new FormBody.Builder()
                 .add("type", type+"")
@@ -71,11 +76,25 @@ public class Live_Selection_Fragment extends BaseNetFragment<Live> {
                 selectRefresh.finishRefresh();
                 selectRefresh.finishRefreshLoadMore();
                 list = response.body().getResult().getList();
-                if (adapter == null) {
-                    adapter = new Selection_Recy_Ada(getActivity(), list);
+                if (adapter == null){
+                    newList = list;
+                    adapter = new Selection_Recy_Ada(getActivity(),newList);
                     recyclerSelect.setAdapter(adapter);
-                    newList.addAll(list);
+                }else{
+                    if (STATE == REFRESH){
+                        newList = list;
+                    }else{
+                        newList.addAll(newList.size(),list);
+                    }
+                    adapter.refresh(newList);
                 }
+                adapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int i) {
+                        Intent intent = new Intent(getActivity(), PlayActivity.class);
+                        startActivity(intent);
+                    }
+                });
             }
             @Override
             public void onFailure(Call<Live> call, Throwable t) {
@@ -84,12 +103,10 @@ public class Live_Selection_Fragment extends BaseNetFragment<Live> {
                 Toast.makeText(getActivity(), "网络连接失败", Toast.LENGTH_SHORT).show();
             }
         });
-        return list;
     }
 
     @Override
     protected void processData(Live live) {
-
     }
 
     private void initRefresh() {
@@ -97,15 +114,15 @@ public class Live_Selection_Fragment extends BaseNetFragment<Live> {
         selectRefresh.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
-                List<Live.ResultBean.ListBean> newList = getData();
-                adapter.refresh(newList);
+                STATE = REFRESH;
+                loadData();
             }
 
             @Override
             public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
-                page += 1;
-                newList.addAll(newList.size()-1,getData());
-                adapter.refresh(newList);
+                STATE = LOAD;
+                page ++;
+                loadData();
             }
         });
     }

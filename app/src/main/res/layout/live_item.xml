@@ -39,11 +39,33 @@
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/iv_pic_live_item"
-        android:layout_marginTop="5dp"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:background="@mipmap/bg"
-        android:scaleType="fitXY"/>
+        android:layout_height="300dp">
+
+        <ImageView
+            android:id="@+id/iv_pic_live_item"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@mipmap/bg"
+            android:scaleType="fitXY"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"/>
+
+        <TextView
+            android:gravity="center"
+            android:padding="5dp"
+            android:layout_margin="10dp"
+            android:id="@+id/tv_status_live_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|right"
+            android:text="录播"
+            android:textSize="15sp"
+            android:textColor="@color/color_ffffff"
+            android:background="@drawable/status_bg"/>
+    </FrameLayout>
 </LinearLayout>

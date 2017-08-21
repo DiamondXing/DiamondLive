@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.bean.Live;
+import com.zxx.diamondlive.listener.OnItemClickListener;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     Context mContext;
     List<Live.ResultBean.ListBean> mList;
+    OnItemClickListener listener;
 
     public Hot_Recy_Ada(Context context,List<Live.ResultBean.ListBean> list) {
         mContext = context;
@@ -28,6 +30,9 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
         mList = list;
         notifyDataSetChanged();
     }
+    public void setOnItemClickListener(OnItemClickListener listener){
+        this.listener = listener;
+    }
     @Override
     public MySelectionAda onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.live_item, parent,false);
@@ -36,16 +41,31 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     }
 
     @Override
-    public void onBindViewHolder(MySelectionAda holder, int position) {
-        if (position < mList.size()) {
-            Glide.with(mContext).load(mList.get(position)
-                    .getUser().getUser_data().getAvatar()).into(holder.ivPhotoLiveItem);
-            Glide.with(mContext).load(mList.get(position)
-                    .getData().getPic()).into(holder.ivPicLiveItem);
-            holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
-            holder.tvDescLiveItem.setText(mList.get(position).getUser()
-                    .getUser_data().getUser_name());
+    public void onBindViewHolder(MySelectionAda holder, final int position) {
+        Glide.with(mContext).load(mList.get(position)
+                .getUser().getUser_data().getAvatar())
+                .error(R.mipmap.ic_launcher_round)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .into(holder.ivPhotoLiveItem);
+        Glide.with(mContext).load(mList.get(position)
+                .getData().getPic())
+                .error(R.mipmap.ic_launcher_round)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .into(holder.ivPicLiveItem);
+        holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
+        holder.tvDescLiveItem.setText(mList.get(position).getUser()
+                .getUser_data().getUser_name());
+        if (mList.get(position).getData().getStatus() == 0){
+            holder.tvStatusLiveItem.setText("直播");
+        }else{
+            holder.tvStatusLiveItem.setText("录播");
         }
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.onItemClick(view,position);
+            }
+        });
     }
 
     @Override

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.bean.Live;
+import com.zxx.diamondlive.listener.OnItemClickListener;
 
 import java.util.List;
 
@@ -24,6 +25,8 @@ import butterknife.ButterKnife;
 public class Selection_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     Context mContext;
     List<Live.ResultBean.ListBean> mList;
+    OnItemClickListener listener;
+
     public Selection_Recy_Ada(Context context,List<Live.ResultBean.ListBean> list) {
         mContext = context;
         mList = list;
@@ -31,6 +34,9 @@ public class Selection_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     public void refresh(List<Live.ResultBean.ListBean> list){
         mList = list;
         notifyDataSetChanged();
+    }
+    public void setOnItemClickListener(OnItemClickListener listener){
+        this.listener = listener;
     }
 
     @Override
@@ -41,16 +47,34 @@ public class Selection_Recy_Ada extends RecyclerView.Adapter<MySelectionAda> {
     }
 
     @Override
-    public void onBindViewHolder(MySelectionAda holder, int position) {
-        if (position < mList.size()) {
-            Glide.with(mContext).load(mList.get(position)
-                    .getUser().getUser_data().getAvatar()).into(holder.ivPhotoLiveItem);
-            Glide.with(mContext).load(mList.get(position)
-                    .getData().getPic()).into(holder.ivPicLiveItem);
-            holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
-            holder.tvDescLiveItem.setText(mList.get(position).getUser()
-                    .getUser_data().getUser_name());
+    public void onBindViewHolder(MySelectionAda holder, final int position) {
+        Glide.with(mContext).load(mList.get(position)
+                .getUser().getUser_data().getAvatar())
+                .error(R.mipmap.ic_launcher_round)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .into(holder.ivPhotoLiveItem);
+
+        Glide.with(mContext).load(mList.get(position)
+                .getData().getPic())
+                .error(R.mipmap.ic_launcher_round)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .into(holder.ivPicLiveItem);
+
+        holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
+        holder.tvDescLiveItem.setText(mList.get(position).getUser()
+                .getUser_data().getUser_name());
+        if (mList.get(position).getData().getStatus() == 0){
+            holder.tvStatusLiveItem.setText("直播");
+        }else{
+            holder.tvStatusLiveItem.setText("录播");
         }
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.onItemClick(view,position);
+            }
+        });
     }
 
     @Override
@@ -68,6 +92,8 @@ class MySelectionAda extends RecyclerView.ViewHolder {
     TextView tvDescLiveItem;
     @BindView(R.id.iv_pic_live_item)
     ImageView ivPicLiveItem;
+    @BindView(R.id.tv_status_live_item)
+    TextView tvStatusLiveItem;
     public MySelectionAda(View itemView) {
         super(itemView);
         ButterKnife.bind(this, itemView);
