@@ -40,6 +40,7 @@ public class LiveHostActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        vpMain.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         initVariable();
         initData();
     }

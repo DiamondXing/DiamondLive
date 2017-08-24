@@ -52,7 +52,7 @@ public class UserAgentUtils {
             // default to "en"
             buffer.append("en");
         }
-        // add the model for the release build
+        // add the com.zxx.diamondlive.model for the release build
         if ("REL".equals(Build.VERSION.CODENAME)) {
             final String model = Build.MODEL;
             if (model.length() > 0) {

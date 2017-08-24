@@ -3,6 +3,7 @@ package com.zxx.diamondlive.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -45,7 +46,20 @@ public class TimeUtil {
         return df.format(new Date());// new Date()为获取当前系统时间
     }
 
+//    2017/3/2
+    public static String getNowDate(String dateFormat){
+        SimpleDateFormat df = new SimpleDateFormat(dateFormat);
+        return df.format(new Date());
+    }
+
     public static Long getTimeDate() {
         return new Date().getTime() / 1000;// new Date()为获取当前系统时间
+   }
+
+    public static String formatTime(int cnt) {
+        int hour = cnt/3600;
+        int min = cnt % 3600 / 60;
+        int second = cnt % 60;
+        return String.format(Locale.CHINA,"%02d:%02d:%02d",hour,min,second);
     }
 }
