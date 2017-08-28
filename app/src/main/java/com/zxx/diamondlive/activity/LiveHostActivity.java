@@ -1,5 +1,6 @@
 package com.zxx.diamondlive.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -11,6 +12,7 @@ import android.widget.RadioGroup;
 
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.activity.base.BaseActivity;
+import com.zxx.diamondlive.bean.User;
 import com.zxx.diamondlive.fragment.LiveFragment;
 import com.zxx.diamondlive.fragment.MeFragment;
 
@@ -36,13 +38,19 @@ public class LiveHostActivity extends BaseActivity {
     private ArrayList<Fragment> listFragment;
     private LiveFragment liveFragment;
     private MeFragment meFragment;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        vpMain.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+        Intent intent = getIntent();
+        user = (User) intent.getSerializableExtra("user");
         initVariable();
         initData();
+    }
+    //获取User对象
+    public User getUser(){
+        return user;
     }
 
     @Override

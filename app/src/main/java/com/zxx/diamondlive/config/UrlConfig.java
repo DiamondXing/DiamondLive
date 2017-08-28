@@ -25,4 +25,8 @@ public class UrlConfig {
 
 
     public final static String API_V1_0_TEST = "contact/company/list.json";
+    public final static String HOME_API = "contact/company/list.json";
+
+
+    public final static String UTIL_FILE_API = "util/file/upload.json";
 }

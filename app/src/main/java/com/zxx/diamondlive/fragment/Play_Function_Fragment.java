@@ -24,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.zxx.diamondlive.R;
@@ -39,6 +38,9 @@ import com.zxx.diamondlive.utils.TimeUtil;
 import com.zxx.diamondlive.view.MyGridView;
 import com.zxx.diamondlive.view.MyViewPager;
 
+import org.dync.giftlibrary.widget.GiftControl;
+import org.dync.giftlibrary.widget.GiftModel;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,8 +52,6 @@ import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-
-import static com.zxx.diamondlive.R.id.play_tv_date;
 
 /**
  * Created by Administrator on 2017/8/19 0019.
@@ -68,8 +68,6 @@ public class Play_Function_Fragment extends BaseFragment {
     TextView playTvNumber;
     @BindView(R.id.play_tv_duration)
     TextView playTvDuration;
-    @BindView(play_tv_date)
-    TextView playTvDate;
     @BindView(R.id.play_recycler_ver)
     RecyclerView playRecyclerVer;
     @BindView(R.id.play_iv_room_down_chat)
@@ -80,6 +78,11 @@ public class Play_Function_Fragment extends BaseFragment {
     ImageView playIvRoomDownMusic;
     @BindView(R.id.play_iv_room_down_close)
     ImageView playIvRoomDownClose;
+    @BindView(R.id.play_tv_date)
+    TextView playTvDate;
+    @BindView(R.id.giftParent)
+    LinearLayout giftParent;
+
     private PopupWindow chatPop;
     private View chatPopView;
     private PopupWindow giftPop;
@@ -90,11 +93,12 @@ public class Play_Function_Fragment extends BaseFragment {
     private ArrayList<ChatContent> chatContents;
     private Play_Recycler_Ver chatContentAdapter;
 
+
     private int time = 0;
-    Handler handler = new Handler(){
+    Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if (msg.what == 1){
+            if (msg.what == 1) {
                 time++;
                 playTvDuration.setText(TimeUtil.formatTime(time));
             }
@@ -111,6 +115,9 @@ public class Play_Function_Fragment extends BaseFragment {
             handler.sendMessage(message);
         }
     };
+    private GiftModel ftModel;
+    private GiftControl giftControl;
+
     @Override
     protected int getContentResId() {
         return R.layout.frg_play_function;
@@ -120,10 +127,17 @@ public class Play_Function_Fragment extends BaseFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initData();
+        initView();
+    }
+
+    private void initView() {
+        ftModel = new GiftModel();
+        giftControl = new GiftControl(getActivity());
+        giftControl.setGiftLayout(false,giftParent,3);
     }
 
     private void initData() {
-        timer.schedule(timerTask,1000,1000);//1s后执行，再过1s执行
+        timer.schedule(timerTask, 1000, 1000);//1s后执行，再过1s执行
         playTvDate.setText(TimeUtil.getNowDate("yyyy/MM/dd"));
         playRecyclerHor.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         playRecyclerHor.setAdapter(new Play_Recycler_Hor());
@@ -132,7 +146,7 @@ public class Play_Function_Fragment extends BaseFragment {
 
         chatContents = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
-            ChatContent chatContent = new ChatContent("小源"+":","今天天气好晴朗"+i);
+            ChatContent chatContent = new ChatContent("小源" + ":", "今天天气好晴朗" + i);
             chatContents.add(chatContent);
         }
         Collections.reverse(chatContents);
@@ -141,8 +155,9 @@ public class Play_Function_Fragment extends BaseFragment {
         initChatPop();
         initGiftPop();
     }
+
     //弹出对话气泡窗口
-    private void initChatPop(){
+    private void initChatPop() {
         chatPop = new PopupWindow(getActivity());
         chatPop.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
         chatPop.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -161,14 +176,15 @@ public class Play_Function_Fragment extends BaseFragment {
             public void onClick(View view) {
                 String chat_content = et_chat.getText().toString();
                 ChatContent chatContent = new ChatContent("小源" + ":", chat_content);
-                chatContents.add(0,chatContent);
+                chatContents.add(0, chatContent);
                 chatContentAdapter.RefreshData(chatContents);
                 et_chat.setText("");
             }
         });
     }
+
     //确定退出Dialog
-    private void showCloseDialog(){
+    private void showCloseDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("温馨提示");
         builder.setMessage("确定结束观看？");
@@ -178,11 +194,12 @@ public class Play_Function_Fragment extends BaseFragment {
                 getActivity().finish();
             }
         });
-        builder.setNegativeButton("取消",null);
+        builder.setNegativeButton("取消", null);
         builder.create().show();
     }
+
     //礼物气泡窗口
-    private void initGiftPop(){
+    private void initGiftPop() {
         //礼物列表的GridView
         ArrayList<MyGridView> myPageList = new ArrayList<>();
         giftPop = new PopupWindow(getActivity());
@@ -196,21 +213,36 @@ public class Play_Function_Fragment extends BaseFragment {
 
 
 //        给礼物列表设置显示动画
-        AnimationSet animationSet = (AnimationSet) AnimationUtils.loadAnimation(getActivity(),R.anim.option_entry_from_bottom);
+        AnimationSet animationSet = (AnimationSet) AnimationUtils.loadAnimation(getActivity(), R.anim.option_entry_from_bottom);
         giftPopView.startAnimation(animationSet);
 
-        List<Gift.GiftListBean> datas = readJson();
-        final int pageCount = (int) Math.ceil(datas.size()*1.0/PAGESIZE);
+        final List<Gift.GiftListBean> datas = readJson();
+        final int pageCount = (int) Math.ceil(datas.size() * 1.0 / PAGESIZE);
         for (int i = 0; i < pageCount; i++) {
             //每个页面都创建一个GridView
             MyGridView gridView = new MyGridView(getActivity());
             gridView.setNumColumns(GIFTCOLUMNS);
-            gridView.setAdapter(new GiftGridViewAdapter(getActivity(),datas,i,PAGESIZE));
+            gridView.setAdapter(new GiftGridViewAdapter(getActivity(), datas, i, PAGESIZE));
             myPageList.add(gridView);
+            final int currentPage = i;
             gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    Toast.makeText(getActivity(), "点击事件", Toast.LENGTH_SHORT).show();
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                    GiftModel giftModel;
+                    position = position+ currentPage *PAGESIZE;
+                    ftModel.setGiftId(datas.get(position).getGiftPrice());
+                    ftModel.setGiftName(datas.get(position).getGiftName());//礼物名字
+                    ftModel.setGiftCount(1);
+                    ftModel.setGiftPic(datas.get(position).getGiftPic());
+                    ftModel.setGiftPrice(datas.get(position).getGiftPrice());
+                    ftModel.setSendUserName("小源");
+                    ftModel.setSendGiftTime(System.currentTimeMillis());
+                    ftModel.setCurrentStart(false);
+                    ftModel.setSendUserId(position+"");
+                    ftModel.setSendUserPic("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1489639863137&di=d33fd6e1ab1d1959e4d5c011fe0e93d7&imgtype=0&src=http%3A%2F%2Fimg2.touxiang.cn%2Ffile%2F20160330%2F025d57c8e840fb9aa71d839d368688fe.jpg");
+                    ftModel.setHitCombo(0);
+                    giftModel = ftModel;
+                    giftControl.loadGift(giftModel);
                 }
             });
         }
@@ -228,9 +260,9 @@ public class Play_Function_Fragment extends BaseFragment {
             layoutParams.leftMargin = 5;
             iv.setLayoutParams(layoutParams);
 
-            if (i==0){
+            if (i == 0) {
                 iv.setImageResource(R.mipmap.emoji_cursor_2);
-            }else{
+            } else {
                 iv.setImageResource(R.mipmap.emoji_cursor_1);
             }
             ll_cursor.addView(iv);
@@ -241,6 +273,7 @@ public class Play_Function_Fragment extends BaseFragment {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
+
             @Override
             public void onPageSelected(int position) {
                 for (int i = 0; i < pageCount; i++) {
@@ -254,30 +287,32 @@ public class Play_Function_Fragment extends BaseFragment {
                     }
                 }
             }
+
             @Override
             public void onPageScrollStateChanged(int state) {
             }
         });
     }
 
-    @OnClick({R.id.play_iv_room_down_chat,R.id.play_iv_room_down_gift,R.id.play_iv_room_down_music,R.id.play_iv_room_down_close})
-    public void onClick(View view){
-             switch (view.getId()){
-                 case R.id.play_iv_room_down_chat:
-                     chatPop.showAtLocation(chatPopView, Gravity.BOTTOM,0,0);
-                     break;
-                 case R.id.play_iv_room_down_gift:
-                     giftPop.showAtLocation(giftPopView,Gravity.BOTTOM,0,0);
-                     break;
-                 case R.id.play_iv_room_down_music:
+    @OnClick({R.id.play_iv_room_down_chat, R.id.play_iv_room_down_gift, R.id.play_iv_room_down_music, R.id.play_iv_room_down_close})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.play_iv_room_down_chat:
+                chatPop.showAtLocation(chatPopView, Gravity.BOTTOM, 0, 0);
+                break;
+            case R.id.play_iv_room_down_gift:
+                giftPop.showAtLocation(giftPopView, Gravity.BOTTOM, 0, 0);
+                break;
+            case R.id.play_iv_room_down_music:
 
-                     break;
-                 case R.id.play_iv_room_down_close:
-                     showCloseDialog();
-                     break;
-             }
+                break;
+            case R.id.play_iv_room_down_close:
+                showCloseDialog();
+                break;
+        }
     }
-    private List<Gift.GiftListBean> readJson(){
+
+    private List<Gift.GiftListBean> readJson() {
         List<Gift.GiftListBean> datas = new ArrayList<>();
         try {
             InputStream inputStream = getActivity().getAssets().open("gift.json");

@@ -53,4 +53,39 @@
         <item name="android:gravity">center_vertical</item>
     </style>
 
+    <style name="login_page_tv_inputNum_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/color_a8a8a8</item>
+    </style>
+
+    <style name="login_page_et_style">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColorHint">@color/color_a8a8a8</item>
+        <item name="android:textColor">@color/color_ffffff</item>
+        <item name="android:background">@null</item>
+        <item name="android:drawableBottom">@drawable/et_selector</item>
+        <item name="android:layout_margin">5dp</item>
+    </style>
+
+    <style name="login_page_tv_name_style">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/color_ffffff</item>
+        <item name="android:layout_marginLeft">5dp</item>
+    </style>
+
+    <style name="input_num_status_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/color_a8a8a8</item>
+        <item name="android:layout_marginRight">5dp</item>
+        <item name="android:layout_gravity">end</item>
+        <item name="android:text">"0/20"</item>
+    </style>
 </resources>

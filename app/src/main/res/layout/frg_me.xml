@@ -7,4 +7,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ME"/>
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/frg_me_iv_avatar"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
 </LinearLayout>

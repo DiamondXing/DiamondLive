@@ -60,7 +60,10 @@ public class GiftGridViewAdapter extends BaseAdapter {
         }
         //重新确定position因为拿到的重视数据源，数据源是分页加载到每页的GridView上的
         final int pos = i+page*pageSize;
-        Glide.with(context).load(datas.get(pos).getGiftPic()).into(holder.ivGiftItem);
+        final ViewHolder finalHolder = holder;
+        Glide.with(context).load(datas.get(pos).getGiftPic())
+                .into(finalHolder.ivGiftItem);
+
         String name = datas.get(pos).getGiftName();
         holder.tvGiftItemName.setText(name.substring(0,name.indexOf(".")));
         holder.tvGiftItemMoney.setText(datas.get(pos).getGiftPrice()+"");
