@@ -1,6 +1,8 @@
 package com.zxx.diamondlive.activity;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
@@ -38,6 +41,12 @@ public class PlayActivity extends BaseActivity{
     private int mVideoHeight = 0;
 
     boolean useHwCodec = false;
+    private int status;
+    private String avatar;
+    private String live_name;
+    private String user_name;
+    private long user_id;
+    private long live_id;
 
 
     @Override
@@ -53,9 +62,32 @@ public class PlayActivity extends BaseActivity{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
+        status = intent.getIntExtra("status", 1);
+        avatar = intent.getStringExtra("avatar");
+        live_name = intent.getStringExtra("live_name");
+        user_name = intent.getStringExtra("user_name");
+        user_id = intent.getLongExtra("user_id", 0L);
+        live_id = intent.getLongExtra("live_id", 0L);
+        Log.d("aaa kan live id", String.valueOf(live_id));
         initVariable();
         initData();
         initTextureVideo();
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public String getLive_name() {
+        return live_name;
+    }
+
+    public String getUser_name() {
+        return user_name;
+    }
+    public long getUser_id() {
+        return user_id;
     }
 
     private void initTextureVideo() {
@@ -72,9 +104,13 @@ public class PlayActivity extends BaseActivity{
         mVideoView.setOnVideoSizeChangedListener(mOnVideoSizeChangeListener);
         mVideoView.setOnErrorListener(mOnErrorListener);
         mVideoView.setScreenOnWhilePlaying(true);
-
         try {
-            mVideoView.setDataSource("rtmp://live.hkstv.hk.lxdns.com/live/hks");
+            if (status == 0){
+//                mVideoView.setDataSource("rtmp://121.42.26.175:1935/mytv/1234");
+                mVideoView.setDataSource("rtmp://rtmplive.geekniu.com/live/abc"+live_id);
+            }else if (status == 1){
+                mVideoView.setDataSource("rtmp://live.hkstv.hk.lxdns.com/live/hks");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,11 +120,9 @@ public class PlayActivity extends BaseActivity{
     private void initVariable() {
         Play_Empty_Fragment play_empty_fragment = new Play_Empty_Fragment();
         Play_Function_Fragment play_function_fragment = new Play_Function_Fragment();
-
         listFragment = new ArrayList<>();
         listFragment.add(play_empty_fragment);
         listFragment.add(play_function_fragment);
-
     }
 
     private void initData() {
@@ -119,10 +153,8 @@ public class PlayActivity extends BaseActivity{
             Log.d("VideoPlayer", "OnPrepared");
             mVideoWidth = mVideoView.getVideoWidth();
             mVideoHeight = mVideoView.getVideoHeight();
-
             // Set Video Scaling Mode
             mVideoView.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-
             //start player
             mVideoView.start();
 
@@ -189,12 +221,26 @@ public class PlayActivity extends BaseActivity{
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            videoPlayEnd();
+            showCloseDialog();
         }
 
         return super.onKeyDown(keyCode, event);
     }
-
+    //确定退出Dialog
+    public void showCloseDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("温馨提示");
+        builder.setMessage("确定结束观看？");
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+                videoPlayEnd();
+            }
+        });
+        builder.setNegativeButton("取消", null);
+        builder.create().show();
+    }
     private void videoPlayEnd() {
         if (mVideoView != null) {
             mVideoView.release();
@@ -202,4 +248,5 @@ public class PlayActivity extends BaseActivity{
         }
         finish();
     }
+
 }

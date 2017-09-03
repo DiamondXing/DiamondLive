@@ -1,20 +1,16 @@
 package com.zxx.diamondlive.activity;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.ContentUris;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -22,8 +18,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -62,6 +58,7 @@ public class RegisterActivity extends BaseActivity {
     private static final int MY_PERMISSIONS_CAMERA = 1;
     private static final int PICTURE = 100;
     private static final int CAMERA = 200;
+    private static final int RESULT_REQUEST_CODE = 300;
     private static final int MY_PERMISSIONS_PICTURE = 2;
     @BindView(R.id.reg_avatar)
     CircleImageView regAvatar;
@@ -124,6 +121,11 @@ public class RegisterActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        regEtNickname.setFilters(new InputFilter[]{new InputFilter.LengthFilter(NICKNAMEMAX)});
+        regEtPhone.setFilters(new InputFilter[]{new InputFilter.LengthFilter(PHONEMAX)});
+        regEtPwd.setFilters(new InputFilter[]{new InputFilter.LengthFilter(PWDMAX)});
+        regEtPwd2.setFilters(new InputFilter[]{new InputFilter.LengthFilter(PWDAGAINMAX)});
+        regEtSign.setFilters(new InputFilter[]{new InputFilter.LengthFilter(SIGNMAX)});
         initData();
     }
 
@@ -402,20 +404,19 @@ public class RegisterActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICTURE && resultCode == RESULT_OK){
             //图库
-            Uri selectedImage = data.getData();
-            String pathResult = getPath(selectedImage);
-            Bitmap bitmap = BitmapFactory.decodeFile(pathResult);
-            regAvatar.setImageBitmap(bitmap);
-            saveImage(bitmap);
+            startPhotoZoom(data.getData());
         }else if (requestCode == CAMERA && resultCode == RESULT_OK){
             //相机
-            try {
-                // 将拍摄的照片显示出来
-                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                regAvatar.setImageBitmap(bitmap);
-                saveImage(bitmap);
-            } catch (Exception e) {
-                e.printStackTrace();
+            startPhotoZoom(imageUri);
+        }else if(requestCode == RESULT_REQUEST_CODE && resultCode == RESULT_OK){
+            if (data != null){
+                Bundle extras = data.getExtras();
+                if (extras != null) {
+                    Bitmap bitmap = extras.getParcelable("data");
+                    Drawable drawable = new BitmapDrawable(this.getResources(), bitmap);
+                    regAvatar.setImageDrawable(drawable);
+                    saveImage(bitmap);
+                }
             }
         }
     }
@@ -463,112 +464,24 @@ public class RegisterActivity extends BaseActivity {
         }
         return file;
     }
+
     /**
-     * 根据系统相册选择的文件获取路径
+     * 裁剪图片方法实现
      *
      * @param uri
      */
-    @SuppressLint("NewApi")
-    private String getPath(Uri uri) {
-        int sdkVersion = Build.VERSION.SDK_INT;
-        if (sdkVersion >= 19) {
-            Log.e("TAG", "uri auth: " + uri.getAuthority());
-            if (isExternalStorageDocument(uri)) {
-                String docId = DocumentsContract.getDocumentId(uri);
-                String[] split = docId.split(":");
-                String type = split[0];
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }
-            } else if (isDownloadsDocument(uri)) {
-                final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"),
-                        Long.valueOf(id));
-                return getDataColumn(this, contentUri, null, null);
-            } else if (isMediaDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                Uri contentUri = null;
-                if ("image".equals(type)) {
-                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                } else if ("video".equals(type)) {
-                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                } else if ("audio".equals(type)) {
-                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                }
-                final String selection = "_id=?";
-                final String[] selectionArgs = new String[]{split[1]};
-                return getDataColumn(this, contentUri, selection, selectionArgs);
-            } else if (isMedia(uri)) {
-                String[] proj = {MediaStore.Images.Media.DATA};
-                Cursor actualimagecursor = this.managedQuery(uri, proj, null, null, null);
-                int actual_image_column_index = actualimagecursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                actualimagecursor.moveToFirst();
-                return actualimagecursor.getString(actual_image_column_index);
-            }
-
-
-        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
-            // Return the remote address
-            if (isGooglePhotosUri(uri))
-                return uri.getLastPathSegment();
-            return getDataColumn(this, uri, null, null);
-        }
-        // File
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
-        }
-        return null;
-    }
-
-    /**
-     * uri路径查询字段
-     *
-     * @param context
-     * @param uri
-     * @param selection
-     * @param selectionArgs
-     * @return
-     */
-    public static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
-        Cursor cursor = null;
-        final String column = "_data";
-        final String[] projection = {column};
-        try {
-            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                final int index = cursor.getColumnIndexOrThrow(column);
-                return cursor.getString(index);
-            }
-        } finally {
-            if (cursor != null)
-                cursor.close();
-        }
-        return null;
-    }
-
-    private boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-    public static boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-    }
-
-    public static boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri.getAuthority());
-    }
-
-    public static boolean isMedia(Uri uri) {
-        return "media".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is Google Photos.
-     */
-    public static boolean isGooglePhotosUri(Uri uri) {
-        return "com.google.android.apps.photos.content".equals(uri.getAuthority());
+    public void startPhotoZoom(Uri uri) {
+        Intent intent = new Intent("com.android.camera.action.CROP");
+        intent.setDataAndType(uri, "image/*");
+        // 设置裁剪
+        intent.putExtra("crop", "true");
+        // aspectX aspectY 是宽高的比例
+        intent.putExtra("aspectX", 1);
+        intent.putExtra("aspectY", 1);
+        // outputX outputY 是裁剪图片宽高
+        intent.putExtra("outputX", 340);
+        intent.putExtra("outputY", 340);
+        intent.putExtra("return-data", true);
+        startActivityForResult(intent, RESULT_REQUEST_CODE);
     }
 }

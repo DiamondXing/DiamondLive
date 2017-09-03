@@ -4,15 +4,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.SystemClock;
+import android.os.Handler;
+import android.os.Message;
 
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.activity.base.BaseActivity;
 
 public class WelcomeActivity extends BaseActivity {
 
+    private static final int STARTLOGIN = 1;
+    private static final int STARTMAIN = 2;
     SharedPreferences sp;
     Context mContext = this;
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == STARTLOGIN){
+                Intent intent = new Intent(mContext,LoginActivity.class);
+                startActivity(intent);
+            }else if (msg.what == STARTMAIN){
+                Intent intent = new Intent(mContext, LiveHostActivity.class);
+                startActivity(intent);
+            }
+            finish();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,22 +36,13 @@ public class WelcomeActivity extends BaseActivity {
         sp = getSharedPreferences("user",MODE_PRIVATE);
         final String username = sp.getString("user_name", "");
         final String password = sp.getString("password", "");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SystemClock.sleep(3000);
-                if (username.equals("") || password.equals("")){
-                    Intent intent = new Intent(mContext,LoginActivity.class);
-                    startActivity(intent);
-                    finish();
-                }else {
-                    Intent intent = new Intent(mContext, LiveHostActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-        }).start();
+        if (username.equals("") || password.equals("")){
+            handler.sendEmptyMessageDelayed(STARTLOGIN,3000);
+        }else{
+            handler.sendEmptyMessageDelayed(STARTMAIN,3000);
+        }
     }
+
 
     @Override
     protected void initTitleBar(HeaderBuilder builder) {

@@ -8,6 +8,5 @@
         android:id="@+id/play_iv_user"
         android:layout_margin="5dp"
         android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:src="@mipmap/play_img"/>
+        android:layout_height="35dp" />
 </LinearLayout>

@@ -7,12 +7,12 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.activity.base.BaseActivity;
-import com.zxx.diamondlive.bean.User;
 import com.zxx.diamondlive.fragment.LiveFragment;
 import com.zxx.diamondlive.fragment.MeFragment;
 
@@ -28,29 +28,22 @@ public class LiveHostActivity extends BaseActivity {
     ViewPager vpMain;
     @BindView(R.id.rb_live_main)
     RadioButton rbLiveMain;
-    @BindView(R.id.rb_room_main)
-    RadioButton rbRoomMain;
     @BindView(R.id.rb_me_main)
     RadioButton rbMeMain;
     @BindView(R.id.rg_main)
     RadioGroup rgMain;
+    @BindView(R.id.iv_room_main)
+    ImageView ivRoomMain;
 
     private ArrayList<Fragment> listFragment;
     private LiveFragment liveFragment;
     private MeFragment meFragment;
-    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = getIntent();
-        user = (User) intent.getSerializableExtra("user");
         initVariable();
         initData();
-    }
-    //获取User对象
-    public User getUser(){
-        return user;
     }
 
     @Override
@@ -73,9 +66,9 @@ public class LiveHostActivity extends BaseActivity {
 
             @Override
             public void onPageSelected(int position) {
-                if (position == 0){
+                if (position == 0) {
                     rbLiveMain.setChecked(true);
-                }else if (position == 1){
+                } else if (position == 1) {
                     rbMeMain.setChecked(true);
                 }
             }
@@ -93,19 +86,19 @@ public class LiveHostActivity extends BaseActivity {
         listFragment = new ArrayList<>();
         listFragment.add(liveFragment);
         listFragment.add(meFragment);
-
-
         vpMain.setCurrentItem(0);
         rbLiveMain.setChecked(true);
     }
 
-    @OnClick({R.id.rb_live_main, R.id.rb_room_main, R.id.rb_me_main})
+    @OnClick({R.id.rb_live_main, R.id.iv_room_main, R.id.rb_me_main})
     public void showView(View view) {
         switch (view.getId()) {
             case R.id.rb_live_main:
                 vpMain.setCurrentItem(0);
                 break;
-            case R.id.rb_room_main:
+            case R.id.iv_room_main:
+                Intent intent = new Intent(this, CameraActivity.class);
+                startActivity(intent);
                 break;
             case R.id.rb_me_main:
                 vpMain.setCurrentItem(1);

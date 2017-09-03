@@ -42,5 +42,25 @@
     <dimen name="txt28">28sp</dimen>
     <dimen name="txt30">30sp</dimen>
 
+    <dimen name="font_size_52px">26sp</dimen>
+    <dimen name="font_size_44px">22sp</dimen>
+    <dimen name="font_size_42px">21sp</dimen>
+    <dimen name="font_size_40px">20sp</dimen>
+    <dimen name="font_size_38px">19sp</dimen>
+    <dimen name="font_size_36px">18sp</dimen>
+    <dimen name="font_size_34px">17sp</dimen>
+    <dimen name="font_size_32px">16sp</dimen>
+    <dimen name="font_size_30px">15sp</dimen>
+    <dimen name="font_size_28px">14sp</dimen>
+    <dimen name="font_size_26px">13sp</dimen>
+    <dimen name="font_size_24px">12sp</dimen>
+    <dimen name="font_size_22px">11sp</dimen>
+    <dimen name="font_size_20px">10sp</dimen>
+
+    <dimen name="global_actionbar_height">46dip</dimen>
+    <dimen name="global_actionbar_view_height">28dip</dimen>
+    <dimen name="global_trans_height">4.2dip</dimen>
+    <dimen name="global_actionbar_top_height">53dip</dimen>
+    <dimen name="global_actionbar_margin_height">48.8dip</dimen>
 
 </resources>

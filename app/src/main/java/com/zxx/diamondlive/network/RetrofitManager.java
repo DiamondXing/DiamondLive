@@ -25,5 +25,4 @@ public class RetrofitManager {
         }
         return mTestRetrofit;
     }
-
 }

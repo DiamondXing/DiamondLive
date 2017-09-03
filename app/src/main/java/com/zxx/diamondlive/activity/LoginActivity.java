@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
@@ -80,8 +81,9 @@ public class LoginActivity extends BaseActivity {
        //初始化输入字符长度
         loginPhoneInput.setText("0"+"/"+PHONEMAX);
         loginPwdInput.setText("0"+"/"+PWDMAX);
+        loginEtPhone.setFilters(new InputFilter[]{new InputFilter.LengthFilter(PHONEMAX)});
+        loginEtPwd.setFilters(new InputFilter[]{new InputFilter.LengthFilter(PWDMAX)});
         inputListener();
-        //开启注册页面
     }
 
     //处理输入框的监听事件
@@ -145,7 +147,7 @@ public class LoginActivity extends BaseActivity {
 //                    存储到SP
                     sp = getSharedPreferences("user",MODE_PRIVATE);
                     edit = sp.edit();
-                    edit.putLong("id",bean.getResult().getId());
+                    edit.putLong("user_id",bean.getResult().getId());
                     edit.putString("phone",user.getPhone());
                     edit.putString("avatar",user.getAvatar());
                     edit.putString("sign",user.getSign());

@@ -2,6 +2,7 @@ package com.zxx.diamondlive.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,14 +44,26 @@ public class Hot_Recy_Ada extends RecyclerView.Adapter<MySelectionAda>implements
 
     @Override
     public void onBindViewHolder(MySelectionAda holder, final int position) {
-        Glide.with(mContext).load(mList.get(position)
-                .getUser().getUser_data().getAvatar())
-                .error(R.mipmap.ic_launcher)
-                .into(holder.ivPhotoLiveItem);
-        Glide.with(mContext).load(mList.get(position)
-                .getData().getPic())
-                .error(R.mipmap.ic_launcher)
-                .into(holder.ivPicLiveItem);
+        if (!TextUtils.isEmpty(mList.get(position).getUser().getUser_data().getAvatar())){
+            Glide.with(mContext).load(mList.get(position)
+                    .getUser().getUser_data().getAvatar())
+                    .error(R.mipmap.ic_my_avatar)
+                    .into(holder.ivPhotoLiveItem);
+        }else{
+            Glide.with(mContext).load(R.mipmap.ic_my_avatar)
+                    .into(holder.ivPhotoLiveItem);
+        }
+        if (!TextUtils.isEmpty(mList.get(position)
+                .getData().getPic())){
+            Glide.with(mContext).load(mList.get(position)
+                    .getData().getPic())
+                    .placeholder(R.mipmap.login_bg)
+                    .error(R.mipmap.login_bg)
+                    .into(holder.ivPicLiveItem);
+        }else{
+            Glide.with(mContext).load(R.mipmap.login_bg)
+                    .into(holder.ivPicLiveItem);
+        }
         holder.tvNameLiveItem.setText(mList.get(position).getData().getLive_name());
         holder.tvDescLiveItem.setText(mList.get(position).getUser()
                 .getUser_data().getUser_name());

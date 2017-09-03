@@ -14,13 +14,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/play_message_tv_bg"
-        android:text="小源："
+        android:text="小源"
         android:textSize="13sp"
         android:textColor="@color/color_ffffff"/>
 
     <TextView
         android:id="@+id/play_message_tv_desc"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="10dp"
         android:gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

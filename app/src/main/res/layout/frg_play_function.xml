@@ -10,12 +10,13 @@
 
         <LinearLayout
             android:id="@+id/play_ll_person_info"
-            android:layout_width="100dp"
+            android:layout_width="120dp"
             android:layout_height="40dp"
             android:orientation="horizontal"
             android:background="@drawable/play_bt_bg">
 
             <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/play_avatar_iv"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@mipmap/play_img"/>
@@ -27,14 +28,18 @@
                 android:gravity="center_vertical"
                 android:layout_marginLeft="5dp">
                 <TextView
+                    android:id="@+id/play_live_name_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:lines="1"
                     android:text="北财"
                     android:textSize="13sp"
                     android:textColor="@color/color_ffffff"/>
                 <TextView
+                    android:id="@+id/play_user_name_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:lines="1"
                     android:text="高龙龙"
                     android:textSize="10sp"
                     android:textColor="@color/color_ffffff"/>
@@ -70,14 +75,16 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/play_tv_duration"
-                android:layout_width="match_parent"
+            <Chronometer
+                android:id="@+id/play_chronometer"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="00:00:00"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:format="%s"
                 android:gravity="center"
                 android:textColor="@color/color_ffffff"
-                />
+                android:textSize="@dimen/font_size_38px" />
             <TextView
                 android:id="@+id/play_tv_date"
                 android:layout_width="match_parent"

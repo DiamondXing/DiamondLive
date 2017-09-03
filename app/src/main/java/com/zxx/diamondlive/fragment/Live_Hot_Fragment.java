@@ -89,7 +89,14 @@ public class Live_Hot_Fragment extends BaseNetFragment<Live> {
                 adapter.setOnItemClickListener(new OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int i) {
+                        Live.ResultBean.ListBean listBean = newList.get(i);
                         Intent intent = new Intent(getActivity(), PlayActivity.class);
+                        intent.putExtra("avatar",listBean.getUser().getUser_data().getAvatar());
+                        intent.putExtra("live_name",listBean.getData().getLive_name());
+                        intent.putExtra("user_name",listBean.getUser().getUser_data().getUser_name());
+                        intent.putExtra("status",listBean.getData().getStatus());
+                        intent.putExtra("user_id",listBean.getUser().getId());
+                        intent.putExtra("live_id",listBean.getId());
                         startActivity(intent);
                     }
                 });

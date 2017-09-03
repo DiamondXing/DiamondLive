@@ -22,4 +22,6 @@
     <color name="color_898989">#898989</color>
     <color name="color_a8a8a8">#A8A8A8</color>
     <color name="color_tab_text">#97E3D6</color>
+    <color name="font_color_35">#368ca8</color>
+    <color name="font_color_41">#ae4ce6</color>
 </resources>
