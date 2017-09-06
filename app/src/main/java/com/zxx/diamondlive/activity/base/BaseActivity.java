@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.WindowManager;
 
 import com.zxx.diamondlive.R;
+import com.zxx.diamondlive.utils.ActivityCollector;
 
 import butterknife.ButterKnife;
 
@@ -18,6 +19,7 @@ public abstract class BaseActivity extends ToolBarActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityCollector.addActivity(this);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRootContent();
@@ -48,4 +50,10 @@ public abstract class BaseActivity extends ToolBarActivity {
         return null;
     }
 
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+        ActivityCollector.removeActivity(this);
+    }
 }

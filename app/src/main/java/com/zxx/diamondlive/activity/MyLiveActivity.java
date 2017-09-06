@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.zxx.diamondlive.network.RetrofitManager;
 import com.zxx.diamondlive.network.api.DeleteLiveApi;
 import com.zxx.diamondlive.network.api.MyListApi;
 import com.zxx.diamondlive.utils.ToastUtils;
+import com.zxx.diamondlive.view.SwipeRefreshView;
 
 import java.util.List;
 
@@ -31,6 +33,8 @@ public class MyLiveActivity extends BaseActivity {
 
     @BindView(R.id.my_live_recycler)
     RecyclerView myLiveRecycler;
+    @BindView(R.id.swipe)
+    SwipeRefreshView swipe;
     private int page = 1;
     private long user_id;
     private MyLiveRecycler adapter;
@@ -50,20 +54,28 @@ public class MyLiveActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         myLiveRecycler.setLayoutManager(new LinearLayoutManager(this));
         user_id = getIntent().getLongExtra("user_id", 0);
+        initListener();
         getLiveList();
     }
 
-    //刷新列表
-    @Override
-    protected void onResume() {
-        super.onResume();
+    private void initListener() {
+        initPullRefresh();
+    }
+
+    private void initPullRefresh() {
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getLiveList();
+            }
+        });
     }
 
     //获取我的直播
-    public void getLiveList(){
+    public void getLiveList() {
         MyListApi myListApi = RetrofitManager.getTestRetrofit().create(MyListApi.class);
         FormBody formBody = new FormBody.Builder()
-                .add("uid",user_id+"")
+                .add("uid", user_id + "")
                 .add("page", String.valueOf(page))
                 .build();
         Call<MyLiveReposeBean> createApiLive = myListApi.getMyList(formBody);
@@ -71,13 +83,14 @@ public class MyLiveActivity extends BaseActivity {
             @Override
             public void onResponse(Call<MyLiveReposeBean> call, Response<MyLiveReposeBean> response) {
                 final List<MyLiveReposeBean.ResultBean.ListBean> list = response.body().getResult().getList();
-                if (response.body().getError_code() != 0 || list == null){
+                if (response.body().getError_code() != 0 || list == null) {
                     ToastUtils.showShort("请求失败");
                     return;
                 }
+                swipe.setRefreshing(false);
                 if (adapter == null) {
                     adapter = new MyLiveRecycler(list);
-                }else{
+                } else {
                     adapter.refreshData(list);
                 }
                 MyLiveActivity.this.myLiveRecycler.setAdapter(adapter);
@@ -85,26 +98,28 @@ public class MyLiveActivity extends BaseActivity {
                     @Override
                     public void onItemClick(View view, int i) {
                         Intent intent = new Intent(MyLiveActivity.this, CameraActivity.class);
-                        intent.putExtra("live_id",list.get(i).getId());
+                        intent.putExtra("live_id", list.get(i).getId());
                         startActivity(intent);
                     }
                 });
                 adapter.setOnItemLongClickListener(new OnItemClickListener() {
                     @Override
-                    public void onItemClick(View view,int i) {
-                        isDelete(list,i);
+                    public void onItemClick(View view, int i) {
+                        isDelete(list, i);
+                        adapter.refreshData(list);
                     }
                 });
             }
+
             @Override
             public void onFailure(Call<MyLiveReposeBean> call, Throwable t) {
-                ToastUtils.showShort("请求失败"+t);
+                ToastUtils.showShort("请求失败" + t);
             }
         });
     }
 
     //确认删除
-    public void isDelete(final List<MyLiveReposeBean.ResultBean.ListBean> list, final int position){
+    public void isDelete(final List<MyLiveReposeBean.ResultBean.ListBean> list, final int position) {
         new AlertDialog.Builder(MyLiveActivity.this).setCancelable(true)
                 .setTitle("确定删除?")
                 .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -123,7 +138,7 @@ public class MyLiveActivity extends BaseActivity {
     }
 
     //删除直播
-    private void deleteLive(long live_id){
+    private void deleteLive(long live_id) {
         DeleteLiveApi deleteLiveApi = RetrofitManager.getTestRetrofit().create(DeleteLiveApi.class);
         FormBody body = new FormBody.Builder()
                 .add("live_id", String.valueOf(live_id))
@@ -132,16 +147,16 @@ public class MyLiveActivity extends BaseActivity {
         liveCall.enqueue(new Callback<DeleteResponseBean>() {
             @Override
             public void onResponse(Call<DeleteResponseBean> call, Response<DeleteResponseBean> response) {
-                if (response.body().getError_code() == 0){
+                if (response.body().getError_code() == 0) {
                     ToastUtils.showShort("删除成功");
-                }else{
+                } else {
                     ToastUtils.showShort("删除失败");
                 }
             }
 
             @Override
             public void onFailure(Call<DeleteResponseBean> call, Throwable t) {
-                ToastUtils.showShort("删除失败"+t);
+                ToastUtils.showShort("删除失败" + t);
             }
         });
     }

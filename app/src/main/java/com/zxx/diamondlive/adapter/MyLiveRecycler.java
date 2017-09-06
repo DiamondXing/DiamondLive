@@ -18,7 +18,7 @@ import java.util.List;
  * Created by Administrator on 2017/8/31 0031.
  */
 
-public class MyLiveRecycler extends RecyclerView.Adapter<MySelectionAda> implements View.OnClickListener,View.OnLongClickListener {
+public class MyLiveRecycler extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements View.OnClickListener,View.OnLongClickListener {
     List<MyLiveReposeBean.ResultBean.ListBean> list;
     private Context mContext;
     OnItemClickListener onItemClickListener;
@@ -38,7 +38,7 @@ public class MyLiveRecycler extends RecyclerView.Adapter<MySelectionAda> impleme
         this.onItemLongClickListener = onItemLongClickListener;
     }
     @Override
-    public MySelectionAda onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
         View view = LayoutInflater.from(mContext).inflate(R.layout.live_item, parent, false);
         view.setOnClickListener(this);
@@ -47,43 +47,43 @@ public class MyLiveRecycler extends RecyclerView.Adapter<MySelectionAda> impleme
     }
 
     @Override
-    public void onBindViewHolder(MySelectionAda holder, int position) {
-        if (!TextUtils.isEmpty(list.get(position).getUser().getUser_data().getAvatar())){
-            Glide.with(mContext).load(list.get(position)
-                    .getUser().getUser_data().getAvatar())
-                    .error(R.mipmap.ic_my_avatar)
-                    .into(holder.ivPhotoLiveItem);
-        }else{
-            Glide.with(mContext).load(R.mipmap.ic_my_avatar)
-                    .into(holder.ivPhotoLiveItem);
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof MySelectionAda) {
+            if (!TextUtils.isEmpty(list.get(position).getUser().getUser_data().getAvatar())) {
+                Glide.with(mContext).load(list.get(position)
+                        .getUser().getUser_data().getAvatar())
+                        .error(R.mipmap.ic_my_avatar)
+                        .into(((MySelectionAda) holder).ivPhotoLiveItem);
+            } else {
+                Glide.with(mContext).load(R.mipmap.ic_my_avatar)
+                        .into(((MySelectionAda) holder).ivPhotoLiveItem);
+            }
+            if (!TextUtils.isEmpty(list.get(position)
+                    .getData().getPic())) {
+                Glide.with(mContext).load(list.get(position)
+                        .getData().getPic())
+                        .placeholder(R.mipmap.login_bg)
+                        .error(R.mipmap.login_bg)
+                        .into(((MySelectionAda) holder).ivPicLiveItem);
+            } else {
+                Glide.with(mContext).load(R.mipmap.login_bg)
+                        .into(((MySelectionAda) holder).ivPicLiveItem);
+            }
+            ((MySelectionAda) holder).tvNameLiveItem.setText(list.get(position).getData().getLive_name());
+            ((MySelectionAda) holder).tvDescLiveItem.setText(list.get(position).getUser()
+                    .getUser_data().getUser_name());
+            if (list.get(position).getData().getStatus() == 0) {
+                ((MySelectionAda) holder).tvStatusLiveItem.setText("直播");
+            } else {
+                ((MySelectionAda) holder).tvStatusLiveItem.setText("录播");
+            }
+            holder.itemView.setTag(position);
         }
-        if (!TextUtils.isEmpty(list.get(position)
-                .getData().getPic())){
-            Glide.with(mContext).load(list.get(position)
-                    .getData().getPic())
-                    .placeholder(R.mipmap.login_bg)
-                    .error(R.mipmap.login_bg)
-                    .into(holder.ivPicLiveItem);
-        }else{
-            Glide.with(mContext).load(R.mipmap.login_bg)
-                    .into(holder.ivPicLiveItem);
-        }
-        holder.tvNameLiveItem.setText(list.get(position).getData().getLive_name());
-        holder.tvDescLiveItem.setText(list.get(position).getUser()
-                .getUser_data().getUser_name());
-        if (list.get(position).getData().getStatus() == 0){
-            holder.tvStatusLiveItem.setText("直播");
-        }else{
-            holder.tvStatusLiveItem.setText("录播");
-        }
-        holder.itemView.setTag(position);
     }
-
     @Override
     public int getItemCount() {
         return list.size() != 0 ? list.size() : 0;
     }
-
     @Override
     public void onClick(View view) {
         if(onItemClickListener!= null) {

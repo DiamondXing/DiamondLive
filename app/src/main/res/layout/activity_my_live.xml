@@ -5,10 +5,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.zxx.diamondlive.activity.MyLiveActivity">
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/my_live_recycler"
+    <com.zxx.diamondlive.view.SwipeRefreshView
+        android:id="@+id/swipe"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </android.support.v7.widget.RecyclerView>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/my_live_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </android.support.v7.widget.RecyclerView>
+
+    </com.zxx.diamondlive.view.SwipeRefreshView>
 </LinearLayout>

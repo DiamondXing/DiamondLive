@@ -33,7 +33,6 @@ import org.dync.giftlibrary.R;
 import java.io.IOException;
 
 
-
 public class GiftFrameLayout extends FrameLayout implements Handler.Callback {
 
     private static final String TAG = "GiftFrameLayout";
@@ -409,12 +408,12 @@ public class GiftFrameLayout extends FrameLayout implements Handler.Callback {
         this.setAlpha(1f);
         isShowing = true;
         isEnd = false;
-
         if (mGift.getSendUserPic().equals("")) {
-            Glide.with(mContext).load(R.mipmap.meinv).transform(new GlideCircleTransform(mContext)).into(anim_header);
+            Glide.with(mContext).load(R.mipmap.meinv)
+                    .into(anim_header);
         } else {
             Glide.with(mContext).load(mGift.getSendUserPic())
-                    .error(R.mipmap.meinv).transform(new GlideCircleTransform(mContext)).into(anim_header);
+                    .error(R.mipmap.meinv).into(anim_header);
         }
         if (mGift.isCurrentStart()) {
             mCombo = mGift.getHitCombo();
@@ -422,7 +421,6 @@ public class GiftFrameLayout extends FrameLayout implements Handler.Callback {
         anim_num.setText("x " + mCombo);
 
         if (!mGift.getGiftPic().equals("")) {
-
             Glide.with(mContext).load(mGift.getGiftPic()).placeholder(R.mipmap.loading).into(new SimpleTarget<GlideDrawable>() {
                 @Override
                 public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {

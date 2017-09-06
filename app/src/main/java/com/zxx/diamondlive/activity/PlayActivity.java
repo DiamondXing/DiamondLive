@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
@@ -47,6 +46,7 @@ public class PlayActivity extends BaseActivity{
     private String user_name;
     private long user_id;
     private long live_id;
+    private String roomId = "25861179899905";
 
 
     @Override
@@ -69,12 +69,10 @@ public class PlayActivity extends BaseActivity{
         user_name = intent.getStringExtra("user_name");
         user_id = intent.getLongExtra("user_id", 0L);
         live_id = intent.getLongExtra("live_id", 0L);
-        Log.d("aaa kan live id", String.valueOf(live_id));
         initVariable();
         initData();
         initTextureVideo();
     }
-
     public String getAvatar() {
         return avatar;
     }
@@ -150,7 +148,6 @@ public class PlayActivity extends BaseActivity{
     private IMediaPlayer.OnPreparedListener mOnPreparedListener = new IMediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(IMediaPlayer mp) {
-            Log.d("VideoPlayer", "OnPrepared");
             mVideoWidth = mVideoView.getVideoWidth();
             mVideoHeight = mVideoView.getVideoHeight();
             // Set Video Scaling Mode
@@ -234,7 +231,6 @@ public class PlayActivity extends BaseActivity{
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                finish();
                 videoPlayEnd();
             }
         });

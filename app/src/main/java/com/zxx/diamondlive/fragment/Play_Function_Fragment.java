@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -26,9 +29,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
+import com.hyphenate.EMCallBack;
+import com.hyphenate.EMError;
+import com.hyphenate.EMMessageListener;
+import com.hyphenate.EMValueCallBack;
+import com.hyphenate.chat.EMChatRoom;
+import com.hyphenate.chat.EMClient;
+import com.hyphenate.chat.EMMessage;
+import com.hyphenate.exceptions.HyphenateException;
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.activity.PlayActivity;
 import com.zxx.diamondlive.adapter.GiftGridViewAdapter;
@@ -38,7 +50,9 @@ import com.zxx.diamondlive.adapter.Play_Recycler_Ver;
 import com.zxx.diamondlive.bean.ChatContent;
 import com.zxx.diamondlive.bean.Gift;
 import com.zxx.diamondlive.fragment.base.BaseFragment;
+import com.zxx.diamondlive.heart.HeartLayout;
 import com.zxx.diamondlive.utils.TimeUtil;
+import com.zxx.diamondlive.utils.ToastUtils;
 import com.zxx.diamondlive.view.MyGridView;
 import com.zxx.diamondlive.view.MyViewPager;
 
@@ -50,10 +64,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import butterknife.Unbinder;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
@@ -91,7 +107,8 @@ public class Play_Function_Fragment extends BaseFragment {
     TextView playUserNameTv;
     @BindView(R.id.play_chronometer)
     Chronometer playChronometer;
-    Unbinder unbinder;
+    @BindView(R.id.heart_layout)
+    HeartLayout heartLayout;
 
     private PopupWindow chatPop;
     private View chatPopView;
@@ -107,9 +124,114 @@ public class Play_Function_Fragment extends BaseFragment {
     private String live_name;
     private String avatar;
     private String user_name;
-    private long userId;
+    private long user_id;
     private InputMethodManager imm;
     private String my_name;
+    private String roomId = "25861179899905";
+    private long my_user_id;
+    private String my_avatar;
+    private String EMPassword = "111111";
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+
+            switch (msg.what) {
+                case REG_FAILED:
+                    ToastUtils.showShort("注册失败");
+                    break;
+                case REG_SUCCESS:
+                    loginEM();
+                    break;
+                case SEND_MESSAGE_SUCCESS:
+                    if (msg.obj instanceof ChatContent) {
+                        chatContents.add(0, (ChatContent) msg.obj);
+                        chatContentAdapter.RefreshData(chatContents);
+                    } else if (msg.obj instanceof Gift.GiftListBean) {
+                        Gift.GiftListBean gift = (Gift.GiftListBean) msg.obj;
+                        GiftModel giftModel = new GiftModel();
+                        giftModel.setGiftId(gift.getGiftName());
+                        giftModel.setGiftName(gift.getGiftName());//礼物名字
+                        giftModel.setGiftCount(1);
+                        giftModel.setGiftPic(gift.getGiftPic());
+                        giftModel.setSendUserName(my_name);
+                        giftModel.setSendGiftTime(System.currentTimeMillis());
+                        giftModel.setCurrentStart(false);
+                        giftModel.setSendUserId(String.valueOf(my_user_id));
+                        giftModel.setSendUserPic(my_avatar);
+                        giftModel.setHitCombo(0);
+                        giftControl.loadGift(giftModel);
+                    }else{
+                        //更改本地UI
+                        heartLayout.addHeart(randomColor());
+                    }
+                    break;
+                case SEND_MESSAGE_FAILED:
+                    ToastUtils.showShort("发送失败");
+                    break;
+                case RECEIVE_MSG:
+                    List<EMMessage> ms = (List<EMMessage>) msg.obj;
+                    for (EMMessage m : ms) {
+                        int type = m.getIntAttribute("type", 1);
+                        if (type == 1) {//聊天
+                            String content = m.getStringAttribute("content", "");
+                            String user_name = m.getStringAttribute("user_name", "");
+                            if (TextUtils.isEmpty(content) || TextUtils.isEmpty(user_name)) {
+                                return;
+                            }
+                            ChatContent receive_content = new ChatContent(user_name, content);
+                            chatContents.add(0, receive_content);
+                            chatContentAdapter.RefreshData(chatContents);
+                        } else if (type == 2) {//礼物
+                            String user_name = m.getStringAttribute("user_name", "");
+                            Long user_id = m.getLongAttribute("user_id", 0);
+                            String avatar = m.getStringAttribute("avatar", "");
+                            String gift_pic = m.getStringAttribute("gift_pic", "");
+                            String gift_id = m.getStringAttribute("gift_id", "");
+                            int gift_count = m.getIntAttribute("gift_count", 1);
+                            if (TextUtils.isEmpty(user_name) || TextUtils.isEmpty(avatar) || TextUtils.isEmpty(gift_pic) ||
+                                    TextUtils.isEmpty(gift_id) || user_id == 0) {
+                                return;
+                            } else {
+                                GiftModel giftModel = new GiftModel();
+                                giftModel.setGiftId(gift_id);
+                                giftModel.setGiftName(gift_id);//礼物名字
+                                giftModel.setGiftCount(gift_count);
+                                giftModel.setGiftPic(gift_pic);
+                                giftModel.setSendUserName(user_name);
+                                giftModel.setSendGiftTime(System.currentTimeMillis());
+                                giftModel.setCurrentStart(false);
+                                giftModel.setSendUserId(String.valueOf(user_id));
+                                giftModel.setSendUserPic(avatar);
+                                giftModel.setHitCombo(0);
+                                giftControl.loadGift(giftModel);
+                            }
+                        } else if (type == 3) {//点赞
+                            handler.sendEmptyMessage(SEND_MESSAGE_SUCCESS);
+                        }
+                    }
+                    break;
+                case LOGIN_SUCCESS:
+                    joinChatRoom();
+                    break;
+                case LOGIN_FAILED:
+                    ToastUtils.showShort("登录失败");
+                    break;
+
+            }
+        }
+    };
+    private static final int REG_SUCCESS = 1;
+    private static final int REG_FAILED = 2;
+    private boolean joinChatRoomSuccess = false;
+    private static final int SEND_MESSAGE_SUCCESS = 3;
+    private static final int SEND_MESSAGE_FAILED = 4;
+    private static final int RECEIVE_MSG = 5;
+    private String chat_content;
+    private Timer mTimer;
+    private static final int LOGIN_SUCCESS = 6;
+    private static final int LOGIN_FAILED = 7;
+
 
     @Override
     protected int getContentResId() {
@@ -119,23 +241,39 @@ public class Play_Function_Fragment extends BaseFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        //监听消息
         initData();
         initView();
     }
 
     private void initView() {
+        //初始化点赞图片
+        //每500毫秒生成一个心
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                heartLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        heartLayout.addHeart(randomColor());
+                    }
+                });
+            }
+        }, 500, 500);
+
         playChronometer.start();
         //获取直播名
         live_name = ((PlayActivity) getActivity()).getLive_name();
         //获取直播用户信息
         avatar = ((PlayActivity) getActivity()).getAvatar();
         user_name = ((PlayActivity) getActivity()).getUser_name();
-        userId = ((PlayActivity) getActivity()).getUser_id();
+        user_id = ((PlayActivity) getActivity()).getUser_id();
         if (!TextUtils.isEmpty(avatar)) {
             Glide.with(getActivity()).load(avatar)
                     .error(R.mipmap.ic_my_avatar)
                     .into(playAvatarIv);
-        }else{
+        } else {
             Glide.with(getActivity()).load(R.mipmap.ic_my_avatar).into(playAvatarIv);
         }
         if (!TextUtils.isEmpty(live_name)) {
@@ -144,18 +282,43 @@ public class Play_Function_Fragment extends BaseFragment {
         if (!TextUtils.isEmpty(user_name)) {
             playUserNameTv.setText(user_name);
         }
-        giftControl = new GiftControl(getActivity());
+        giftControl = new GiftControl(getActivity().getApplication());
         giftControl.setGiftLayout(false, giftParent, 3);
     }
 
     private void initData() {
-        //获取用户自己的名字
-        SharedPreferences sp = getActivity().getSharedPreferences("user",Context.MODE_PRIVATE);
+        //获取用户自己的信息
+        SharedPreferences sp = getActivity().getSharedPreferences("user", Context.MODE_PRIVATE);
         my_name = sp.getString("user_name", "");
+        my_user_id = sp.getLong("user_id", 0L);
+        my_avatar = sp.getString("avatar", "");
+
+        if (my_user_id == 0L) {
+            return;
+        }
+        //注册环信账号
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EMClient.getInstance().createAccount(String.valueOf(my_user_id), EMPassword);
+                } catch (HyphenateException e) {
+                    int errorCode = e.getErrorCode();
+                    if (errorCode == EMError.EM_NO_ERROR) {//没有错误
+                        handler.sendEmptyMessage(REG_SUCCESS);
+                    } else if (errorCode == EMError.USER_ALREADY_EXIST) {//该用户已经存在
+                        handler.sendEmptyMessage(REG_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(REG_FAILED);
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
         playTvDate.setText(TimeUtil.getNowDate("yyyy/MM/dd"));
         ArrayList<String> list = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
-            list.add(avatar);
+            list.add(this.avatar);
         }
         playRecyclerHor.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         playRecyclerHor.setAdapter(new Play_Recycler_Hor(list));
@@ -167,11 +330,48 @@ public class Play_Function_Fragment extends BaseFragment {
             ChatContent chatContent = new ChatContent("小源", "今天天气好晴朗");
             chatContents.add(chatContent);
         }
-//        Collections.reverse(chatContents);
         chatContentAdapter = new Play_Recycler_Ver(chatContents);
         playRecyclerVer.setAdapter(chatContentAdapter);
         initChatPop();
         initGiftPop();
+    }
+
+    //登录环信
+    private void loginEM() {
+        EMClient.getInstance().login(String.valueOf(my_user_id), EMPassword, new EMCallBack() {//回调
+            @Override
+            public void onSuccess() {
+                handler.sendEmptyMessage(LOGIN_SUCCESS);
+            }
+            @Override
+            public void onProgress(int progress, String status) {
+            }
+
+            @Override
+            public void onError(int code, String message) {
+                handler.sendEmptyMessage(LOGIN_SUCCESS);
+            }
+        });
+    }
+
+    //加入聊天室
+    private void joinChatRoom() {
+        EMClient.getInstance().chatroomManager().joinChatRoom(roomId, new EMValueCallBack<EMChatRoom>() {
+            @Override
+            public void onSuccess(EMChatRoom value) {
+                EMClient.getInstance().chatManager().addMessageListener(msgListener);
+                joinChatRoomSuccess = true;
+            }
+
+            @Override
+            public void onError(int error, String errorMsg) {
+            }
+        });
+    }
+
+    //离开聊天室
+    private void leaveChatRoom() {
+        EMClient.getInstance().chatroomManager().leaveChatRoom(roomId);
     }
 
     //弹出对话气泡窗口
@@ -196,10 +396,40 @@ public class Play_Function_Fragment extends BaseFragment {
             @Override
             public void onClick(View view) {
                 imm.hideSoftInputFromWindow(et_chat.getWindowToken(), 0);
-                String chat_content = et_chat.getText().toString();
-                ChatContent chatContent = new ChatContent(my_name, chat_content);
-                chatContents.add(0,chatContent);
-                chatContentAdapter.RefreshData(chatContents);
+                chat_content = et_chat.getText().toString();
+                if (TextUtils.isEmpty(chat_content)) {
+                    Toast.makeText(getActivity(), "消息内容不能为空！", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!joinChatRoomSuccess) {
+                    return;
+                }
+
+                EMMessage message = EMMessage.createTxtSendMessage(chat_content, roomId);
+                message.setChatType(EMMessage.ChatType.ChatRoom);
+                message.setAttribute("type", 1);
+                message.setAttribute("user_name", my_name);
+                message.setAttribute("content", chat_content);
+                EMClient.getInstance().chatManager().sendMessage(message);
+                message.setMessageStatusCallback(new EMCallBack() {
+                    @Override
+                    public void onSuccess() {
+                        ChatContent chatContent = new ChatContent(my_name, chat_content);
+                        Message msg = Message.obtain();
+                        msg.obj = chatContent;
+                        msg.what = SEND_MESSAGE_SUCCESS;
+                        handler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onError(int code, String error) {
+                        handler.sendEmptyMessage(SEND_MESSAGE_FAILED);
+                    }
+
+                    @Override
+                    public void onProgress(int progress, String status) {
+                    }
+                });
                 et_chat.setText("");
             }
         });
@@ -218,7 +448,6 @@ public class Play_Function_Fragment extends BaseFragment {
         giftPopView = LayoutInflater.from(getActivity()).inflate(R.layout.gift_pop, null);
         giftPop.setContentView(giftPopView);
 
-
 //        给礼物列表设置显示动画
         AnimationSet animationSet = (AnimationSet) AnimationUtils.loadAnimation(getActivity(), R.anim.option_entry_from_bottom);
         giftPopView.startAnimation(animationSet);
@@ -232,23 +461,42 @@ public class Play_Function_Fragment extends BaseFragment {
             gridView.setAdapter(new GiftGridViewAdapter(getActivity(), datas, i, PAGESIZE));
             myPageList.add(gridView);
             final int currentPage = i;
+
             gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                    GiftModel giftModel = new GiftModel();
                     position = position + currentPage * PAGESIZE;
-                    giftModel.setGiftId(datas.get(position).getGiftPrice());
-                    giftModel.setGiftName(datas.get(position).getGiftName());//礼物名字
-                    giftModel.setGiftCount(1);
-                    giftModel.setGiftPic(datas.get(position).getGiftPic());
-                    giftModel.setGiftPrice(datas.get(position).getGiftPrice());
-                    giftModel.setSendUserName(live_name);
-                    giftModel.setSendGiftTime(System.currentTimeMillis());
-                    giftModel.setCurrentStart(false);
-                    giftModel.setSendUserId(String.valueOf(userId));
-                    giftModel.setSendUserPic(avatar);
-                    giftModel.setHitCombo(0);
-                    giftControl.loadGift(giftModel);
+                    final Gift.GiftListBean gift = datas.get(position);
+                    //发送礼物消息
+                    EMMessage message = EMMessage.createTxtSendMessage(gift.getGiftName(), roomId);
+                    message.setChatType(EMMessage.ChatType.ChatRoom);
+                    message.setAttribute("type", 2);
+                    message.setAttribute("user_name", my_name);
+                    message.setAttribute("user_id", my_user_id);
+                    message.setAttribute("avatar", my_avatar);
+                    message.setAttribute("gift_pic", gift.getGiftPic());
+                    message.setAttribute("gift_id", gift.getGiftName());
+                    message.setAttribute("gift_count", 1);
+                    EMClient.getInstance().chatManager().sendMessage(message);
+
+                    message.setMessageStatusCallback(new EMCallBack() {
+                        @Override
+                        public void onSuccess() {
+                            Message msg = Message.obtain();
+                            msg.obj = gift;
+                            msg.what = SEND_MESSAGE_SUCCESS;
+                            handler.sendMessage(msg);
+                        }
+
+                        @Override
+                        public void onError(int code, String error) {
+                            handler.sendEmptyMessage(SEND_MESSAGE_FAILED);
+                        }
+
+                        @Override
+                        public void onProgress(int progress, String status) {
+                        }
+                    });
                 }
             });
         }
@@ -304,20 +552,46 @@ public class Play_Function_Fragment extends BaseFragment {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.play_iv_room_down_chat:
+                if (chatPop == null || chatPopView == null) {
+                    return;
+                }
                 chatPop.showAtLocation(chatPopView, Gravity.BOTTOM, 0, 0);
                 break;
             case R.id.play_iv_room_down_gift:
                 giftPop.showAtLocation(giftPopView, Gravity.BOTTOM, 0, 0);
                 break;
             case R.id.play_iv_room_down_music:
-
+                //发送消息
+                EMMessage message = EMMessage.createTxtSendMessage("点赞", roomId);
+                message.setChatType(EMMessage.ChatType.ChatRoom);
+                message.setAttribute("type", 3);
+                EMClient.getInstance().chatManager().sendMessage(message);
+                message.setMessageStatusCallback(new EMCallBack() {
+                    @Override
+                    public void onSuccess() {
+                       handler.sendEmptyMessage(SEND_MESSAGE_SUCCESS);
+                    }
+                    @Override
+                    public void onError(int code, String error) {
+                        handler.sendEmptyMessage(SEND_MESSAGE_FAILED);
+                    }
+                    @Override
+                    public void onProgress(int progress, String status) {
+                    }
+                });
                 break;
             case R.id.play_iv_room_down_close:
-                ((PlayActivity)(getActivity())).showCloseDialog();
+                ((PlayActivity) (getActivity())).showCloseDialog();
                 break;
         }
     }
-
+    /**
+     * 随机颜色
+     * @return
+     */
+    private int randomColor() {
+        return Color.rgb(new Random().nextInt(255), new Random().nextInt(255), new Random().nextInt(255));
+    }
     private List<Gift.GiftListBean> readJson() {
         List<Gift.GiftListBean> datas = new ArrayList<>();
         try {
@@ -331,4 +605,42 @@ public class Play_Function_Fragment extends BaseFragment {
         }
         return datas;
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mTimer.cancel();
+        EMClient.getInstance().chatManager().removeMessageListener(msgListener);
+        leaveChatRoom(); //退出聊天室
+    }
+
+    EMMessageListener msgListener = new EMMessageListener() {
+        @Override
+        public void onMessageReceived(List<EMMessage> messages) {
+            Message message = Message.obtain();
+            message.obj = messages;
+            message.what = RECEIVE_MSG;
+            handler.sendMessage(message);
+        }
+
+        @Override
+        public void onCmdMessageReceived(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageRead(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageDelivered(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageChanged(EMMessage message, Object change) {
+
+        }
+    };
 }

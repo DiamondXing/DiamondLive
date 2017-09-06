@@ -211,6 +211,8 @@ public class RegisterActivity extends BaseActivity {
     //注册按钮点击事件
     @OnClick(R.id.reg_bt_reg)
     public void registerClick(View v) {
+        regBtReg.setClickable(false);
+        regBtReg.setEnabled(false);
         nickname = regEtNickname.getText().toString().trim();
         phone = regEtPhone.getText().toString().trim();
         pwd = regEtPwd.getText().toString().trim();
@@ -342,6 +344,8 @@ public class RegisterActivity extends BaseActivity {
             }
             @Override
             public void onFailure(Call<RegReposeBean> call, Throwable t) {
+                regBtReg.setEnabled(true);
+                regBtReg.setClickable(true);
                 Toast.makeText(RegisterActivity.this, "注册失败", Toast.LENGTH_SHORT).show();
             }
         });

@@ -14,8 +14,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.zxx.diamondlive.R;
+import com.zxx.diamondlive.activity.LoginActivity;
 import com.zxx.diamondlive.activity.MyLiveActivity;
 import com.zxx.diamondlive.fragment.base.BaseFragment;
+import com.zxx.diamondlive.utils.ActivityCollector;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -62,6 +64,7 @@ public class MeFragment extends BaseFragment {
     private long user_id;
     private String phone;
     private String password;
+    private SharedPreferences.Editor edit;
 
     @Override
     protected int getContentResId() {
@@ -72,6 +75,7 @@ public class MeFragment extends BaseFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         sp = getActivity().getSharedPreferences("user", Context.MODE_PRIVATE);
+        edit = sp.edit();
         avatar = sp.getString("avatar", "");
         sign = sp.getString("sign", "");
         user_name = sp.getString("user_name", "");
@@ -113,7 +117,11 @@ public class MeFragment extends BaseFragment {
 
                   break;
               case R.id.quit:
-
+                  ActivityCollector.finishAll();
+                  Intent quit = new Intent(getActivity(), LoginActivity.class);
+                  startActivity(quit);
+                  edit.clear();
+                  edit.commit();
                   break;
           }
     }
