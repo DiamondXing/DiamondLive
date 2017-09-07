@@ -2,31 +2,51 @@ package com.zxx.diamondlive.activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.hyphenate.EMCallBack;
+import com.hyphenate.EMError;
+import com.hyphenate.EMMessageListener;
+import com.hyphenate.EMValueCallBack;
+import com.hyphenate.chat.EMChatRoom;
+import com.hyphenate.chat.EMClient;
+import com.hyphenate.chat.EMMessage;
+import com.hyphenate.exceptions.HyphenateException;
 import com.ksyun.media.streamer.capture.CameraCapture;
 import com.ksyun.media.streamer.capture.camera.CameraTouchHelper;
 import com.ksyun.media.streamer.filter.imgtex.ImgBeautyProFilter;
@@ -37,20 +57,26 @@ import com.ksyun.media.streamer.kit.StreamerConstants;
 import com.ksyun.media.streamer.util.gles.GLRender;
 import com.zxx.diamondlive.R;
 import com.zxx.diamondlive.activity.base.BaseActivity;
+import com.zxx.diamondlive.adapter.Play_Recycler_Ver;
+import com.zxx.diamondlive.bean.ChatContent;
 import com.zxx.diamondlive.bean.LiveReposeBean;
 import com.zxx.diamondlive.bean.UpdateStatusBean;
+import com.zxx.diamondlive.heart.HeartLayout;
 import com.zxx.diamondlive.network.RetrofitManager;
 import com.zxx.diamondlive.network.api.CreateApi;
 import com.zxx.diamondlive.network.api.UpdateStatusApi;
 import com.zxx.diamondlive.utils.ToastUtils;
-import com.zxx.diamondlive.view.CameraHintView;
 import com.zxx.diamondlive.view.VerticalSeekBar;
+
+import org.dync.giftlibrary.widget.GiftControl;
+import org.dync.giftlibrary.widget.GiftModel;
 
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -88,20 +114,24 @@ public class CameraActivity extends BaseActivity {
     TextView mDebugInfoTextView;
     @BindView(R.id.backoff)
     ImageView mDeleteView;
-    @BindView(R.id.click_to_record)
-    TextView mRecordingText;
     @BindView(R.id.click_to_capture_screenshot)
     TextView mCaptureSceenShot;
     @BindView(R.id.linearLayout)
     LinearLayout linearLayout;
     @BindView(R.id.click_to_switch_beauty)
     TextView clickToSwitchBeauty;
-    @BindView(R.id.camera_hint)
-    CameraHintView mCameraHintView;
     @BindView(R.id.camera_create_live_et)
     EditText cameraCreateLiveEt;
     @BindView(camera_start_live_bt)
     Button cameraStartLiveBt;
+    @BindView(R.id.zhibo_chat)
+    RecyclerView zhiboChat;
+    @BindView(R.id.zhibo_heartLayout)
+    HeartLayout zhiboHeartLayout;
+    @BindView(R.id.camera_chat_iv)
+    ImageView cameraChatIv;
+    @BindView(R.id.zhibo_giftParent)
+    LinearLayout zhiboGiftParent;
 
     private KSYStreamer mStreamer;
     private static final String TAG = "CameraActivity";
@@ -126,6 +156,100 @@ public class CameraActivity extends BaseActivity {
     private View bottom_view;
     private boolean isNewLive = true;
     private long live_id;//直播id
+    private View chatView;
+    private Play_Recycler_Ver chatContentAdapter;
+    private ArrayList<ChatContent> chatContents;
+    private InputMethodManager imm;
+    private long user_id;
+    private String avatar;
+    private String user_name;
+    private String roomId = "25861179899905";
+    private boolean joinChatRoomSuccess = false;
+
+    private static final int REG_SUCCESS = 1;
+    private static final int REG_FAILED = 2;
+    private static final int SEND_MESSAGE_SUCCESS = 3;
+    private static final int SEND_MESSAGE_FAILED = 4;
+    private static final int RECEIVE_MSG = 5;
+    private static final int LOGIN_SUCCESS = 6;
+    private static final int LOGIN_FAILED = 7;
+    private Timer timer;
+    private String EMPassword = "111111";
+    private GiftControl giftControl;
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case REG_FAILED:
+                    ToastUtils.showShort("注册失败");
+                    break;
+                case REG_SUCCESS:
+                    loginEM();
+                    break;
+                case SEND_MESSAGE_SUCCESS:
+                    if (msg.obj instanceof ChatContent) {
+                        chatContents.add(0, (ChatContent) msg.obj);
+                        chatContentAdapter.RefreshData(chatContents);
+                        zhiboChat.scrollToPosition(0);
+                    }
+                    break;
+                case SEND_MESSAGE_FAILED:
+                    ToastUtils.showShort("发送失败");
+                    break;
+                case RECEIVE_MSG:
+                    List<EMMessage> ms = (List<EMMessage>) msg.obj;
+                    for (EMMessage m : ms) {
+                        int type = m.getIntAttribute("type", 1);
+                        if (type == 1) {//聊天
+                            String content = m.getStringAttribute("content", "");
+                            String user_name = m.getStringAttribute("user_name", "");
+                            if (TextUtils.isEmpty(content) || TextUtils.isEmpty(user_name)) {
+                                return;
+                            }
+                            ChatContent receive_content = new ChatContent(user_name, content);
+                            chatContents.add(0, receive_content);
+                            zhiboChat.scrollToPosition(0);
+                            chatContentAdapter.RefreshData(chatContents);
+                        } else if (type == 2) {//礼物
+                            String user_name = m.getStringAttribute("user_name", "");
+                            Long user_id = m.getLongAttribute("user_id", 0);
+                            String avatar = m.getStringAttribute("avatar", "");
+                            String gift_pic = m.getStringAttribute("gift_pic", "");
+                            String gift_id = m.getStringAttribute("gift_id", "");
+                            int gift_count = m.getIntAttribute("gift_count", 1);
+                            if (TextUtils.isEmpty(user_name) || TextUtils.isEmpty(avatar) || TextUtils.isEmpty(gift_pic) ||
+                                    TextUtils.isEmpty(gift_id) || user_id == 0) {
+                                return;
+                            } else {
+                                GiftModel giftModel = new GiftModel();
+                                giftModel.setGiftId(gift_id);
+                                giftModel.setGiftName(gift_id);//礼物名字
+                                giftModel.setGiftCount(gift_count);
+                                giftModel.setGiftPic(gift_pic);
+                                giftModel.setSendUserName(user_name);
+                                giftModel.setSendGiftTime(System.currentTimeMillis());
+                                giftModel.setCurrentStart(false);
+                                giftModel.setSendUserId(String.valueOf(user_id));
+                                giftModel.setSendUserPic(avatar);
+                                giftModel.setHitCombo(0);
+                                giftControl.loadGift(giftModel);
+                            }
+                        } else if (type == 3) {//点赞
+                            zhiboHeartLayout.addHeart(randomColor());
+                        }
+                    }
+                    break;
+                case LOGIN_SUCCESS:
+                    joinChatRoom();
+                    break;
+                case LOGIN_FAILED:
+                    ToastUtils.showShort("登录失败");
+                    break;
+
+            }
+        }
+    };
 
     @Override
     protected void initTitleBar(HeaderBuilder builder) {
@@ -141,8 +265,16 @@ public class CameraActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
+        chatView = findViewById(R.id.camera_chat_view);
         live_id = intent.getLongExtra("live_id", 0L);
-        if (live_id != 0L){
+        //获取用户自己的信息
+        SharedPreferences sp = getSharedPreferences("user", Context.MODE_PRIVATE);
+        user_name = sp.getString("user_name", "");
+        user_id = sp.getLong("user_id", 0L);
+        avatar = sp.getString("avatar", "");
+        giftControl = new GiftControl(this);
+        giftControl.setGiftLayout(false, zhiboGiftParent, 3);
+        if (live_id != 0L) {
             isNewLive = false;
             cameraCreateLiveEt.setVisibility(View.GONE);
         }
@@ -151,12 +283,12 @@ public class CameraActivity extends BaseActivity {
         mExposureSeekBar.setOnSeekBarChangeListener(getVerticalSeekListener());
         mMainHandler = new Handler();
         mObserverButton = new ButtonObserver();
-        mRecordingText.setOnClickListener(mObserverButton);
         mCaptureSceenShot.setOnClickListener(mObserverButton);
         mDeleteView.setOnClickListener(mObserverButton);
         mSwitchCameraView.setOnClickListener(mObserverButton);
         mFlashView.setOnClickListener(mObserverButton);
         mExposureView.setOnClickListener(mObserverButton);
+        cameraChatIv.setOnClickListener(mObserverButton);
         // 创建KSYStreamer实例
         mStreamer = new KSYStreamer(this);
         initData();
@@ -261,8 +393,6 @@ public class CameraActivity extends BaseActivity {
         CameraTouchHelper cameraTouchHelper = new CameraTouchHelper();
         cameraTouchHelper.setCameraCapture(mStreamer.getCameraCapture());
         mCameraPreview.setOnTouchListener(cameraTouchHelper);
-        // set CameraHintView to show focus rect and zoom ratio
-        cameraTouchHelper.setCameraHintView(mCameraHintView);
     }
 
     private void setCameraAntiBanding50Hz() {
@@ -294,8 +424,6 @@ public class CameraActivity extends BaseActivity {
                     break;
                 case StreamerConstants.KSY_STREAMER_FILE_RECORD_STOPPED:
                     Log.d(TAG, "KSY_STREAMER_FILE_RECORD_STOPPED");
-                    mRecordingText.setText(START_RECORDING);
-                    mRecordingText.postInvalidate();
                     mIsFileRecording = false;
                     stopChronometer();
                     break;
@@ -405,14 +533,11 @@ public class CameraActivity extends BaseActivity {
         }
         //录制开始成功后会发送StreamerConstants.KSY_STREAMER_OPEN_FILE_SUCCESS消息
         mStreamer.startRecord(mRecordUrl);
-        mRecordingText.setText(STOP_RECORDING);
-        mRecordingText.postInvalidate();
         mIsFileRecording = true;
     }
 
     private void onSwitchCamera() {
         mStreamer.switchCamera();
-        mCameraHintView.hideAll();
     }
 
     private void onFlashClick() {
@@ -439,7 +564,7 @@ public class CameraActivity extends BaseActivity {
     private void startStream() {
         Log.d("aaa live id", String.valueOf(live_id));
         if (live_id != 0L) {
-            mStreamer.setUrl("rtmp://uplive.geekniu.com/live/abc"+live_id);
+            mStreamer.setUrl("rtmp://uplive.geekniu.com/live/abc" + live_id);
             mStreamer.startStream();
             updateStatus(live_id, 0);
         }
@@ -483,14 +608,14 @@ public class CameraActivity extends BaseActivity {
                 case R.id.flash:
                     onFlashClick();
                     break;
-                case R.id.click_to_record:
-                    onRecordClick();
-                    break;
                 case R.id.click_to_capture_screenshot:
                     onCaptureScreenShotClick();
                     break;
                 case R.id.exposure:
                     onExposureClick();
+                    break;
+                case R.id.camera_chat_iv:
+                    initChatPop();
                     break;
                 default:
                     break;
@@ -542,9 +667,9 @@ public class CameraActivity extends BaseActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
-                if (mRecording){
+                if (mRecording) {
                     onBackoffClick();
-                }else{
+                } else {
                     finish();
                 }
 
@@ -626,7 +751,6 @@ public class CameraActivity extends BaseActivity {
         mStreamer.setUseDummyAudioCapture(false);
         startCameraPreviewWithPermCheck(true);
         mStreamer.setEnableAudioLowDelay(true);
-        mCameraHintView.hideAll();
     }
 
     @Override
@@ -650,6 +774,12 @@ public class CameraActivity extends BaseActivity {
         if (mTimer != null) {
             mTimer.cancel();
         }
+        if (timer != null) {
+            timer.cancel();
+        }
+        EMClient.getInstance().logout(true);
+        leaveChatRoom();
+        EMClient.getInstance().chatManager().removeMessageListener(msgListener);
         mStreamer.setOnLogEventListener(null);
         mStreamer.release();
     }
@@ -701,21 +831,89 @@ public class CameraActivity extends BaseActivity {
             }
         }
     }
+
     //创建直播
     @OnClick(camera_start_live_bt)
-    public void startLive(View view){
-        if (isNewLive){//新建的直播
+    public void startLive(View view) {
+        //注册环信
+        regEM();
+        if (isNewLive) {//新建的直播
             createLive();
-        }else{
+        } else {
             cameraStartLiveBt.setVisibility(View.GONE);
-            bottom_view.setVisibility(View.VISIBLE);
             onShootClick();
         }
+        bottom_view.setVisibility(View.VISIBLE);
+        initChatView();
     }
+
+    //注册环信
+    private void regEM() {
+        //注册环信账号
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EMClient.getInstance().createAccount(String.valueOf(user_id), EMPassword);
+                } catch (HyphenateException e) {
+                    int errorCode = e.getErrorCode();
+                    if (errorCode == EMError.EM_NO_ERROR) {//没有错误
+                        handler.sendEmptyMessage(REG_SUCCESS);
+                    } else if (errorCode == EMError.USER_ALREADY_EXIST) {//该用户已经存在
+                        handler.sendEmptyMessage(REG_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(REG_FAILED);
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    //登录环信
+    private void loginEM() {
+        EMClient.getInstance().login(String.valueOf(user_id), EMPassword, new EMCallBack() {//回调
+            @Override
+            public void onSuccess() {
+                handler.sendEmptyMessage(LOGIN_SUCCESS);
+            }
+
+            @Override
+            public void onProgress(int progress, String status) {
+            }
+
+            @Override
+            public void onError(int code, String message) {
+                Log.d("aaaTAB", "登录失败" + message);
+                handler.sendEmptyMessage(LOGIN_FAILED);
+            }
+        });
+    }
+
+    //加入聊天室
+    private void joinChatRoom() {
+        EMClient.getInstance().chatroomManager().joinChatRoom(roomId, new EMValueCallBack<EMChatRoom>() {
+            @Override
+            public void onSuccess(EMChatRoom value) {
+                EMClient.getInstance().chatManager().addMessageListener(msgListener);
+                joinChatRoomSuccess = true;
+            }
+
+            @Override
+            public void onError(int error, String errorMsg) {
+            }
+        });
+    }
+
+    //离开聊天室
+    private void leaveChatRoom() {
+        EMClient.getInstance().chatroomManager().leaveChatRoom(roomId);
+    }
+
     //创建直播
-    private void createLive(){
+    private void createLive() {
         String live_name = cameraCreateLiveEt.getText().toString().trim();
-        SharedPreferences sp = getSharedPreferences("user",MODE_PRIVATE);
+        SharedPreferences sp = getSharedPreferences("user", MODE_PRIVATE);
         long user_id = sp.getLong("user_id", 0);
         //生成随机数，作为直播类型
         Random random = new Random();
@@ -732,13 +930,13 @@ public class CameraActivity extends BaseActivity {
                 "http://c.hiphotos.baidu.com/zhidao/pic/item/7a899e510fb30f24d8689e34ce95d143ad4b0312.jpg"
         };
         int picIndex = random.nextInt(pics.length);
-        Log.d("aaa:index",picIndex+"");
-        Log.d("aaa:live_type",live_type+"");
+        Log.d("aaa:index", picIndex + "");
+        Log.d("aaa:live_type", live_type + "");
         CreateApi createApi = RetrofitManager.getTestRetrofit().create(CreateApi.class);
         FormBody body = new FormBody.Builder()
                 .add("uid", String.valueOf(user_id))
-                .add("pic",pics[picIndex])
-                .add("live_name",live_name)
+                .add("pic", pics[picIndex])
+                .add("live_name", live_name)
                 .add("live_type", String.valueOf(live_type))
                 .build();
         Call<LiveReposeBean> createCall = createApi.createLive(body);
@@ -746,13 +944,12 @@ public class CameraActivity extends BaseActivity {
             @Override
             public void onResponse(Call<LiveReposeBean> call, Response<LiveReposeBean> response) {
                 LiveReposeBean bean = response.body();
-                if (bean.getResult() == null || bean.getError_code() != 0){
+                if (bean.getResult() == null || bean.getError_code() != 0) {
                     ToastUtils.showShort(bean.getError_msg());
                     return;
                 }
                 cameraCreateLiveEt.setVisibility(View.GONE);
                 cameraStartLiveBt.setVisibility(View.GONE);
-                bottom_view.setVisibility(View.VISIBLE);
                 live_id = bean.getResult().getId();
                 //创建成功
                 onShootClick();
@@ -764,34 +961,173 @@ public class CameraActivity extends BaseActivity {
             }
         });
     }
+
     //改变直播状态
-    private void updateStatus(long live_id, final int status){
+    private void updateStatus(long live_id, final int status) {
         UpdateStatusApi statusApi = RetrofitManager.getTestRetrofit().create(UpdateStatusApi.class);
         FormBody body = new FormBody.Builder()
-                .add("live_id",live_id+"")
-                .add("status",status+"")
+                .add("live_id", live_id + "")
+                .add("status", status + "")
                 .build();
         Call<UpdateStatusBean> updateStatus = statusApi.updateStatus(body);
         updateStatus.enqueue(new Callback<UpdateStatusBean>() {
             @Override
             public void onResponse(Call<UpdateStatusBean> call, Response<UpdateStatusBean> response) {
                 List<UpdateStatusBean.ResultBean> result = response.body().getResult();
-                if (result == null || result.size() == 0){
+                if (result == null || result.size() == 0) {
                     return;
                 }
                 String preStatus;
-                if (status == 0){
+                if (status == 0) {
                     preStatus = "直播";
-                }else{
+                } else {
                     preStatus = "录播";
                 }
-                ToastUtils.showShort("直播状态已更改为"+preStatus);
+                ToastUtils.showShort("直播状态已更改为" + preStatus);
             }
 
             @Override
             public void onFailure(Call<UpdateStatusBean> call, Throwable t) {
-                ToastUtils.showShort("更改直播失败"+t);
+                ToastUtils.showShort("更改直播失败" + t);
             }
         });
     }
+
+    //初始化弹幕，点赞
+    private void initChatView() {
+        chatView.setVisibility(View.VISIBLE);
+        zhiboChat.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
+        chatContents = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            ChatContent chatContent = new ChatContent("小源", "今天天气好晴朗");
+            chatContents.add(chatContent);
+        }
+        zhiboChat.scrollToPosition(0);
+        chatContentAdapter = new Play_Recycler_Ver(chatContents);
+        zhiboChat.setAdapter(chatContentAdapter);
+        //初始化点赞图片
+        //每500毫秒生成一个心
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (zhiboHeartLayout == null) {
+                    return;
+                }
+                zhiboHeartLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (zhiboHeartLayout != null) {
+                            zhiboHeartLayout.addHeart(randomColor());
+                        }
+                    }
+                });
+            }
+        }, 500, 500);
+    }
+
+    //弹出对话气泡窗口
+    private void initChatPop() {
+        imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        PopupWindow chatPop = new PopupWindow(this);
+        chatPop.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
+        chatPop.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        View chatPopView = LayoutInflater.from(this).inflate(R.layout.chat_pop, null);
+        chatPop.setContentView(chatPopView);
+        chatPop.setBackgroundDrawable(new ColorDrawable(0x00000000));
+        chatPop.setOutsideTouchable(true);
+        chatPop.setFocusable(true);
+        chatPop.setSoftInputMode(PopupWindow.INPUT_METHOD_NEEDED);
+        chatPop.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        chatPop.showAtLocation(chatPopView, Gravity.BOTTOM, 0, 0);
+        //处理发送按钮的点击事件
+        final EditText et_chat = chatPopView.findViewById(R.id.et_chat_pop);
+        Button bt_chat_send = chatPopView.findViewById(R.id.bt_chat_pop);
+
+        bt_chat_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imm.hideSoftInputFromWindow(et_chat.getWindowToken(), 0);
+                final String chat_content = et_chat.getText().toString();
+                if (TextUtils.isEmpty(chat_content)) {
+                    Toast.makeText(CameraActivity.this, "消息内容不能为空！", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!joinChatRoomSuccess) {
+                    return;
+                }
+
+                EMMessage message = EMMessage.createTxtSendMessage(chat_content, roomId);
+                message.setChatType(EMMessage.ChatType.ChatRoom);
+                message.setAttribute("type", 1);
+                message.setAttribute("user_name", user_name);
+                message.setAttribute("content", chat_content);
+                EMClient.getInstance().chatManager().sendMessage(message);
+                message.setMessageStatusCallback(new EMCallBack() {
+                    @Override
+                    public void onSuccess() {
+                        ChatContent chatContent = new ChatContent(user_name, chat_content);
+                        Message msg = Message.obtain();
+                        msg.obj = chatContent;
+                        msg.what = SEND_MESSAGE_SUCCESS;
+                        handler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onError(int code, String error) {
+                        handler.sendEmptyMessage(SEND_MESSAGE_FAILED);
+                    }
+
+                    @Override
+                    public void onProgress(int progress, String status) {
+                    }
+                });
+                et_chat.setText("");
+            }
+        });
+    }
+
+    /**
+     * 随机颜色
+     *
+     * @return
+     */
+    private int randomColor() {
+        return Color.rgb(new Random().nextInt(255), new Random().nextInt(255), new Random().nextInt(255));
+    }
+
+    EMMessageListener msgListener = new EMMessageListener() {
+        @Override
+        public void onMessageReceived(List<EMMessage> messages) {
+            Message message = Message.obtain();
+            message.obj = messages;
+            message.what = RECEIVE_MSG;
+            handler.sendMessage(message);
+        }
+
+        @Override
+        public void onCmdMessageReceived(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageRead(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageDelivered(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageRecalled(List<EMMessage> list) {
+
+        }
+
+        @Override
+        public void onMessageChanged(EMMessage message, Object change) {
+
+        }
+    };
 }

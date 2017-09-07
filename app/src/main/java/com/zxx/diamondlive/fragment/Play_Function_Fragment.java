@@ -253,6 +253,9 @@ public class Play_Function_Fragment extends BaseFragment {
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                if (heartLayout == null){
+                    return;
+                }
                 heartLayout.post(new Runnable() {
                     @Override
                     public void run() {
@@ -349,7 +352,7 @@ public class Play_Function_Fragment extends BaseFragment {
 
             @Override
             public void onError(int code, String message) {
-                handler.sendEmptyMessage(LOGIN_SUCCESS);
+                handler.sendEmptyMessage(LOGIN_FAILED);
             }
         });
     }
@@ -609,7 +612,10 @@ public class Play_Function_Fragment extends BaseFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mTimer.cancel();
+        if (mTimer != null) {
+            mTimer.cancel();
+        }
+        EMClient.getInstance().logout(true);
         EMClient.getInstance().chatManager().removeMessageListener(msgListener);
         leaveChatRoom(); //退出聊天室
     }
@@ -635,6 +641,11 @@ public class Play_Function_Fragment extends BaseFragment {
 
         @Override
         public void onMessageDelivered(List<EMMessage> messages) {
+
+        }
+
+        @Override
+        public void onMessageRecalled(List<EMMessage> list) {
 
         }
 

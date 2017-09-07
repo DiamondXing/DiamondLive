@@ -56,12 +56,12 @@
         "source": "C:\\Users\\Administrator\\.android\\build-cache\\227ed52b81a0d2beae5c2e00e9ff15cd8df35f72\\output\\res\\drawable\\abc_ic_clear_material.xml"
     },
     {
-        "merged": "E:\\ShiXun01\\DiamondLive\\giftlibrary\\build\\intermediates\\res\\merged\\release\\drawable\\abc_btn_radio_material.xml",
-        "source": "C:\\Users\\Administrator\\.android\\build-cache\\227ed52b81a0d2beae5c2e00e9ff15cd8df35f72\\output\\res\\drawable\\abc_btn_radio_material.xml"
-    },
-    {
         "merged": "E:\\ShiXun01\\DiamondLive\\giftlibrary\\build\\intermediates\\res\\merged\\release\\drawable\\abc_btn_colored_material.xml",
         "source": "C:\\Users\\Administrator\\.android\\build-cache\\227ed52b81a0d2beae5c2e00e9ff15cd8df35f72\\output\\res\\drawable\\abc_btn_colored_material.xml"
+    },
+    {
+        "merged": "E:\\ShiXun01\\DiamondLive\\giftlibrary\\build\\intermediates\\res\\merged\\release\\drawable\\abc_btn_radio_material.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\227ed52b81a0d2beae5c2e00e9ff15cd8df35f72\\output\\res\\drawable\\abc_btn_radio_material.xml"
     },
     {
         "merged": "E:\\ShiXun01\\DiamondLive\\giftlibrary\\build\\intermediates\\res\\merged\\release\\drawable\\abc_seekbar_thumb_material.xml",

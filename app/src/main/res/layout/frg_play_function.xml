@@ -105,7 +105,6 @@
                 android:id="@+id/play_recycler_ver"
                 android:layout_width="300dp"
                 android:layout_height="200dp"
-                android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true">
 
             </android.support.v7.widget.RecyclerView>

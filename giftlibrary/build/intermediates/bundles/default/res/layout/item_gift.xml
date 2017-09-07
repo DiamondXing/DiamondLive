@@ -50,7 +50,9 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@id/nickNameTv" />
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_toRightOf="@id/infoTv" />
     </RelativeLayout>
 
     <ImageView

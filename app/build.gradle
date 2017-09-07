@@ -44,9 +44,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile files('libs/android-viewbadger.jar')
-    compile project(':playerlib')
     compile project(':giftlibrary')
-    compile files('src/main/jniLibs/ksylive.jar')
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.okhttp3:okhttp:3.2.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
@@ -64,7 +62,6 @@ dependencies {
     compile 'de.hdodenhof:circleimageview:2.1.0'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
-    compile 'com.hyphenate:hyphenate-sdk-lite:3.3.0'
     compile(name: 'ucommon-android-sdk-1.0.0', ext: 'aar')
     compile(name: 'ulive-android-sdk-1.5.1', ext: 'aar')
     compile(name: 'uvod-android-sdk-1.5.8', ext: 'aar')

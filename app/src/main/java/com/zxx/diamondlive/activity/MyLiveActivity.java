@@ -55,7 +55,6 @@ public class MyLiveActivity extends BaseActivity {
         myLiveRecycler.setLayoutManager(new LinearLayoutManager(this));
         user_id = getIntent().getLongExtra("user_id", 0);
         initListener();
-        getLiveList();
     }
 
     private void initListener() {
@@ -153,11 +152,16 @@ public class MyLiveActivity extends BaseActivity {
                     ToastUtils.showShort("删除失败");
                 }
             }
-
             @Override
             public void onFailure(Call<DeleteResponseBean> call, Throwable t) {
                 ToastUtils.showShort("删除失败" + t);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getLiveList();
     }
 }

@@ -47,9 +47,11 @@
 
         <ImageView
             android:id="@+id/giftIv"
-            android:layout_width="39dp"
-            android:layout_height="39dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
             android:layout_toRightOf="@id/infoTv" />
     </RelativeLayout>
 
