@@ -105,7 +105,7 @@ public class PlayActivity extends BaseActivity{
         try {
             if (status == 0){
 //                mVideoView.setDataSource("rtmp://121.42.26.175:1935/mytv/1234");
-                mVideoView.setDataSource("rtmp://rtmplive.geekniu.com/live/abc"+live_id);
+                mVideoView.setDataSource("rtmp://rtmplive.geekniu.com/live/"+live_id);
             }else if (status == 1){
                 mVideoView.setDataSource("rtmp://live.hkstv.hk.lxdns.com/live/hks");
             }

@@ -272,7 +272,7 @@ public class CameraActivity extends BaseActivity {
         user_name = sp.getString("user_name", "");
         user_id = sp.getLong("user_id", 0L);
         avatar = sp.getString("avatar", "");
-        giftControl = new GiftControl(this);
+        giftControl = new GiftControl(getApplicationContext());
         giftControl.setGiftLayout(false, zhiboGiftParent, 3);
         if (live_id != 0L) {
             isNewLive = false;
@@ -564,7 +564,7 @@ public class CameraActivity extends BaseActivity {
     private void startStream() {
         Log.d("aaa live id", String.valueOf(live_id));
         if (live_id != 0L) {
-            mStreamer.setUrl("rtmp://uplive.geekniu.com/live/abc" + live_id);
+            mStreamer.setUrl("rtmp://uplive.geekniu.com/live/"+live_id);
             mStreamer.startStream();
             updateStatus(live_id, 0);
         }
